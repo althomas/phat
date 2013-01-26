@@ -1,5 +1,7 @@
 % 
 
+datafile = 'log_1';
+
 n=4;      %number of state (make sure to change f and s accordingly)
 q=0.1;    %std of process 
 r=0.1;    %std of measurement 
@@ -15,6 +17,8 @@ N=20;                                     % total dynamic steps
 xV = zeros(n,N);          %estimate       % allocate memory
 sV = zeros(n,N);          %actual
 zV = zeros(1,N); % do we need this?
+
+
 
 for k=1:N
   z = h(s) + r*randn;                     % measurments (create test data)
