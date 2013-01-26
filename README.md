@@ -9,10 +9,10 @@ at elbow).
 
 Contact info <@seas.upenn.edu>:
 
-Cam Cogan       <ccog>
-David Hallac    <hallac>
-Nick Howarth    <nhowarth>
-Ashleigh Thomas <thomasas>
-Sam Wolfson     <swolfson>
+Cam Cogan       {ccog}
+David Hallac    {hallac}
+Nick Howarth    {nhowarth}
+Ashleigh Thomas {thomasas}
+Sam Wolfson     {swolfson}
 
 
