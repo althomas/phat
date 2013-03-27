@@ -54,9 +54,16 @@ classdef quaternion
             
         end
         
-%         function rotq = a2q(thx,thy,thz) %function to generate quaternion based on angle rotated around each axis
-%             
-%         end
+        function rotq = a2q(thx,thy,thz) %function to generate quaternion based on angle rotated around each axis
+             %roll angle: thx, pitch angle: thy, yaw angle: thz
+             thx = r; thy = p; thz = y;
+             
+             qx = sin(r) * cos(p) * cos(y) - cos(r) * sin(p) * sin(y);
+             qy = cos(r) * sin(p) * cos(y) + sin(r) * cos(p) * sin(y);
+             qz = cos(r) * cos(p) * sin(y) - sin(r) * sin(p) * cos(y);
+             qw = cos(r) * cos(p) * cos(y) + sin(r) * sin(p) * sin(y);
+             rotq = quaternion(qw,qx,qy,qz);
+        end
         
     end
 end
