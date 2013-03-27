@@ -49,12 +49,12 @@ classdef quaternion
             
             qconj = q.conj(); %get q conjugate
             
-            vqc = qmult(vecQ,qconj); v*qconj
-            rotVect = qmult(q,vqc); q * (v*qconj)
+            vqc = qmult(vecQ,qconj); %v*qconj;
+            rotVect = qmult(q,vqc); %q * (v*qconj);
             
         end
         
-%         function rotq = a2q(thx,thy,thz)
+%         function rotq = a2q(thx,thy,thz) %function to generate quaternion based on angle rotated around each axis
 %             
 %         end
         
