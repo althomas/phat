@@ -37,11 +37,12 @@ classdef quaternion
             y = q1.w*q2.y + q1.y*q2.w + q1.z*q2.x - q1.x*q2.z;
             z = q1.w*q2.z + q1.z*q2.w + q1.x*q2.y - q1.y*q2.x;
             w = q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z;
-            qprod = quaternion(w,x,y,z);
+            qprodtemp = quaternion(w,x,y,z);
+            qprod = qnorm(qprodtemp);
             
         end
         
-        function rotVect = rotbyq(v,q) %% rotated vector = q * vector * qconjugate
+        function rotVect = rotbyq(q,v) %% rotated vector = q * vector * qconjugate
             magv = sqrt(v(1)^2 + v(2)^2 + v(3)^2);
             v = v ./ magv;%normalize v
             
@@ -50,20 +51,20 @@ classdef quaternion
             qconj = q.conj(); %get q conjugate
             
             vqc = qmult(vecQ,qconj); %v*qconj;
-            rotVect = qmult(q,vqc); %q * (v*qconj);
+            rotVectq = qmult(q,vqc); %q * (v*qconj);
             
         end
         
-        function rotq = a2q(thx,thy,thz) %function to generate quaternion based on angle rotated around each axis
-             %roll angle: thx, pitch angle: thy, yaw angle: thz
-             thx = r; thy = p; thz = y;
-             
-             qx = sin(r) * cos(p) * cos(y) - cos(r) * sin(p) * sin(y);
-             qy = cos(r) * sin(p) * cos(y) + sin(r) * cos(p) * sin(y);
-             qz = cos(r) * cos(p) * sin(y) - sin(r) * sin(p) * cos(y);
-             qw = cos(r) * cos(p) * cos(y) + sin(r) * sin(p) * sin(y);
-             rotq = quaternion(qw,qx,qy,qz);
-        end
+%         function rotq = angle2quat(thx,thy,thz) %function to generate quaternion based on angle rotated around each axis
+%              %roll angle: thx, pitch angle: thy, yaw angle: thz
+%              %thx = r; thy = p; thz = y;
+%              
+%              qx = sin(thx) * cos(thy) * cos(thz) - cos(thx) * sin(thy) * sin(thz);
+%              qy = cos(thx) * sin(thy) * cos(thz) + sin(thx) * cos(thy) * sin(thz);
+%              qz = cos(thx) * cos(thy) * sin(thz) - sin(thx) * sin(thy) * cos(thz);
+%              qw = cos(thx) * cos(thy) * cos(thz) + sin(thx) * sin(thy) * sin(thz);
+%              rotq = quaternion(qw,qx,qy,qz);
+%         end
         
     end
 end
