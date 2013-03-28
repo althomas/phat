@@ -4,7 +4,8 @@
 function [in,vis]=read_logs(logfile_in, logfile_vis)
 
 
-in = dlmread(logfile_in, '\t'); 
-vis = dlmread(logfile_vis, '\t'); 
+  in = dlmread(logfile_in, '\t'); 
+  vis = dlmread(logfile_vis, '\t'); 
+
 
 end
