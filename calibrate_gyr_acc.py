@@ -9,13 +9,14 @@ Program to determine the accelerometer offsets, accelerometer scales, and gyro o
 
 	Author: Sam Wolfson, ESE, SEAS, UPENN
 """
+import sys
 import numpy
 from numpy import linalg
 
 def calibrate(ax,ay,az,gx,gy,gz):
-	H = numpy.array([ax,ay,az, -ay**2,-z**2, numpy.ones([len(x),1])])
+	H = numpy.array([ax,ay,az, -ay**2,-az**2, numpy.ones([len(ax),1])])
 	H = numpy.transpose(H)
-	w = x**2
+	w = ax**2
 
 	(X, residues, rank, shape) = linalg.lstsq(H, w)
 	
@@ -59,7 +60,9 @@ def calibrate(ax,ay,az,gx,gy,gz):
 	return([OSx, OSy, OSz], [SCx, SCy, SCz],[GOSx, GOSy, GOSz])
 
 if __name__ == "__main__":
-	dat_f = open("dat.txt", 'r')
+	#filename = argv[:1]
+	#print filename
+	dat_f = open("caltest.txt", 'r')
 	acc_x = []
 	acc_y = []
 	acc_z = []
@@ -76,8 +79,10 @@ if __name__ == "__main__":
 		gyr_y.append(int(reading[2]))
 		gyr_z.append(int(reading[3]))
 
-	(accel_offsets, scale, gyro_offset) = calibrate(numpy.array(acc_x),numpy.array(acc_x),numpy.array(gyr_x), numpy.array(gyr_y), numpy.array(gyr_z)
+	(accel_offsets, scale, gyro_offset) = calibrate(numpy.array(acc_x),numpy.array(acc_y),numpy.array(acc_z),numpy.array(gyr_x), numpy.array(gyr_y), numpy.array(gyr_z))
 
 	print accel_offsets
 	print scale
 	print gyro_offset
+
+
