@@ -1,3 +1,14 @@
+"""
+Program to determine the accelerometer offsets, accelerometer scales, and gyro offsets to properly calibrate the mIMU 9-dof imu
+	developed by Jonathan Fiene at UPENN.
+
+	This calibration routine is adapted from one developed by Fabio Varesano at the Universita' degli Studi di Torino, and made available 
+	under version 3 of the GPL
+
+	This code comes with no warranty, nor any implication of one.
+
+	Author: Sam Wolfson, ESE, SEAS, UPENN
+"""
 import numpy
 from numpy import linalg
 
