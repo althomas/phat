@@ -14,6 +14,7 @@ import numpy
 from numpy import linalg
 
 def calibrate(ax,ay,az,gx,gy,gz):
+	#this block provided by Fabio Varesano
 	H = numpy.array([ax,ay,az, -ay**2,-az**2, numpy.ones([len(ax),1])])
 	H = numpy.transpose(H)
 	w = ax**2
@@ -31,7 +32,11 @@ def calibrate(ax,ay,az,gx,gy,gz):
 	SCx = numpy.sqrt(A)
 	SCy = numpy.sqrt(B)
 	SCz = numpy.sqrt(C)
-	
+	#END Fabio's stuff
+	"""Gyro calibration code added by Sam:
+		Takes the average of each component of the gyro data, to determine the offset. Gyro calibration data should be
+		taken while the IMU is not moving
+	"""
 	GOSx = 0
 	GOSy = 0
 	GOSz = 0
@@ -41,28 +46,28 @@ def calibrate(ax,ay,az,gx,gy,gz):
 		GOSx += value
 		count +=1
 	
-	GOSx = GOSx/count
+	GOSx = GOSx/count #average value of x component
 
 	count = 0
 	for value in gy:
 		GOSy += value
 		count +=1
 	
-	GOSy = GOSy/count
+	GOSy = GOSy/count #average value of y component
 
 	count = 0
 	for value in gz:
 		GOSz += value
 		count +=1
 	
-	GOSz = GOSz/count
+	GOSz = GOSz/count #average value of z component
 
 	return([OSx, OSy, OSz], [SCx, SCy, SCz],[GOSx, GOSy, GOSz])
 
 if __name__ == "__main__":
 	filename = sys.argv[1]
 	print filename
-	dat_f = open(str(filename), 'r')
+	dat_f = open(filename, 'r')
 	acc_x = []
 	acc_y = []
 	acc_z = []
@@ -75,9 +80,9 @@ if __name__ == "__main__":
 		acc_x.append(int(reading[0]))
 		acc_y.append(int(reading[1]))
 		acc_z.append(int(reading[2]))
-		gyr_x.append(int(reading[1]))
-		gyr_y.append(int(reading[2]))
-		gyr_z.append(int(reading[3]))
+		gyr_x.append(int(reading[3]))
+		gyr_y.append(int(reading[4]))
+		gyr_z.append(int(reading[5]))
 
 	(accel_offsets, scale, gyro_offset) = calibrate(numpy.array(acc_x),numpy.array(acc_y),numpy.array(acc_z),numpy.array(gyr_x), numpy.array(gyr_y), numpy.array(gyr_z))
 
