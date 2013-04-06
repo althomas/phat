@@ -11,40 +11,67 @@
 #include "m_bus.h"
 #include "m_general.h"
 
+void selectIMU(int select);
+void calibrate(int select);
+void measure(int select);
+
 unsigned long overflow = 0;
 unsigned long micros;
 int raw_data_buffer[3];
 int ax, ay, az, gx, gy, gz;
 int i = 0;
 int j = 0;
+int sel;
 int bar0[6];
 int bar1[6];
 int bar2[6];
 int bar3[6];
+int bar4[6];
+int bar5[6];
+int bar6[6];
 
 ISR(TIMER3_OVF_vect){
 	set(TIFR3,TOV3);
-	//measure(0);
-	//m_usb_tx_int(overflow % 2);
+	sel = overflow % 4;
+	measure(sel);
 	overflow++;
 }
 
 void selectIMU(int select){
 	switch(select){
 		case 0:
-			clear(PORTB,0);
+			clear(PORTF,0);
+			clear(PORTF,1);
 			clear(PORTB,1);
 			break;
 		case 1:
-			set(PORTB,0);
+			set(PORTF,0);
+			clear(PORTF,1);
 			clear(PORTB,1);
 			break;
 		case 2:
-			clear(PORTB,0);
-			set(PORTB,1);
+			clear(PORTF,0);
+			set(PORTF,1);
+			clear(PORTB,1);
 			break;
 		case 3:
-			set(PORTB,0);
+			set(PORTF,0);
+			set(PORTF,1);
+			clear(PORTB,1);
+			break;
+		case 4:
+			clear(PORTF,0);
+			clear(PORTF,1);
+			set(PORTB,1);
+			break;
+		case 5:
+			set(PORTF,0);
+			clear(PORTF,1);
+			set(PORTB,1);
+			break;
+		case 6:
+			clear(PORTF,0);
+			set(PORTF,1);
 			set(PORTB,1);
 			break;
 	}
@@ -61,7 +88,7 @@ void calibrate(int select){
 	
 	selectIMU(select);
 	
-	for(i = 0; i<100; i++){
+	for(i = 0; i < 100; i++){
 		m_wait(10);
 		m_green(TOGGLE);
 		toggle(PORTB,2);
@@ -107,6 +134,21 @@ void calibrate(int select){
 				bar3[i] = bar[i];
 			}
 			break;
+		case 4:
+			for(i = 0; i < 6; i++){
+				bar4[i] = bar[i];
+			}
+			break;
+		case 5:
+			for(i = 0; i < 6; i++){
+				bar5[i] = bar[i];
+			}
+			break;
+		case 6:
+			for(i = 0; i < 6; i++){
+				bar6[i] = bar[i];
+			}
+			break;
 	}
 }
 
@@ -130,12 +172,21 @@ void measure(int select){
 		case 3:
 			bar = bar3;
 			break;
+		case 4:
+			bar = bar4;
+			break;
+		case 5:
+			bar = bar5;
+			break;
+		case 6:
+			bar = bar6;
+			break;
 	}
 	
 	m_usb_tx_int(select);
 	m_usb_tx_string("\t");
 	
-	micros = 8192 * overflow + (unsigned long)((float)(((unsigned long)(TCNT3H) << 8) | TCNT3L) * 8192 / 65535);
+	micros = 4096 * overflow + (unsigned long)((float)(((unsigned long)(TCNT3H) << 8) | TCNT3L) * 4096 / 65536);
 	m_usb_tx_ulong(micros);
 	m_usb_tx_string("\t");
 	
@@ -164,11 +215,11 @@ void measure(int select){
 
 int main(void)
 {
-	m_clockdivide(1);	// 16 MHz
+	m_clockdivide(0);	// 16 MHz
 
-	set(DDRB,0);  // set B0 as output
+	set(DDRF,0);  // set F0 as output
+	set(DDRF,1);  // set F1 as output
 	set(DDRB,1);  // set B1 as output
-	
 	m_usb_init();
 	while(!m_usb_isconnected()){
 		m_green(ON);
@@ -176,27 +227,28 @@ int main(void)
 	m_green(OFF);
 	set(DDRB,2);
 
-	clear(PORTB,0);
+	clear(PORTF,0);
+	clear(PORTF,1);
 	clear(PORTB,1);
 	m_wait(10);
 	if(!m_imu_init(0,1)){
 		m_red(ON);  // RED LED turns on if there's a problem
 		m_usb_tx_string("IMU0 could not connect");
 	}
-	set(PORTB,0);
+	set(PORTF,0);
 	m_wait(10);
 	if(!m_imu_init(0,1)){
 		m_red(ON);  // RED LED turns on if there's a problem
 		m_usb_tx_string("IMU1 could not connect");
 	}
-	clear(PORTB,0);
-	set(PORTB,1);
+	clear(PORTF,0);
+	set(PORTF,1);
 	m_wait(10);
 	if(!m_imu_init(0,1)){
 		m_red(ON);  // RED LED turns on if there's a problem
 		m_usb_tx_string("IMU2 could not connect");
 	}
-	set(PORTB,0);
+	set(PORTF,0);
 	m_wait(10);
 	if(!m_imu_init(0,1)){
 		m_red(ON);  // RED LED turns on if there's a problem
@@ -215,14 +267,20 @@ int main(void)
 	sei(); // enable global interrupts	
 
 	while(1){
-		measure(0);
-		m_wait(50);
-		measure(1);
-		m_wait(50);
-		measure(2);
-		m_wait(50);
-		measure(3);
-		m_wait(50);
+		//measure(0);
+		//m_wait(50);
+		//measure(1);
+		//m_wait(50);
+		//measure(2);
+		//m_wait(50);
+		//measure(3);
+		//m_wait(50);
+		//measure(4);
+		//m_wait(50);
+		//measure(5);
+		//m_wait(50);
+		//measure(6);
+		//m_wait(50);
 	}
 	
 /*		
