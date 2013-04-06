@@ -60,9 +60,9 @@ def calibrate(ax,ay,az,gx,gy,gz):
 	return([OSx, OSy, OSz], [SCx, SCy, SCz],[GOSx, GOSy, GOSz])
 
 if __name__ == "__main__":
-	#filename = argv[:1]
-	#print filename
-	dat_f = open("caltest.txt", 'r')
+	filename = sys.argv[1]
+	print filename
+	dat_f = open(str(filename), 'r')
 	acc_x = []
 	acc_y = []
 	acc_z = []
