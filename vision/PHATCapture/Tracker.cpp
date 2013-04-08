@@ -1,6 +1,11 @@
 /* File: Tracker.cpp
    Author: Cam Cogan
    Desc: Implementation file for video analysis class
+   Credits: The implementation below would not have been possible without the
+            assistance of the video "OpenCV tutorial 1 - config with MS VC++
+	    2010, 1st object recognition and tracking program" (available at
+	    www.youtube.com/watch?v=2i2bt-YSIYQ as of 4/8/2013) by the Youtube
+	    user 18F4550videos.
 */
 
 #include "Tracker.h"
@@ -11,7 +16,7 @@
 
 Tracker::Tracker(const char *outputFilePath)
 {
-  textFilePath = new char[BUFFER_SIZE];
+	textFilePath = new char[BUFFER_SIZE];
 	int strlength = strlen(outputFilePath);
 	strncpy(textFilePath, outputFilePath, strlength);
 	//strncpy doesn't copy a null character over, so we must do it here
@@ -29,7 +34,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 	char *outputFileName = (char *)malloc(sizeof(char) * BUFFER_SIZE);
 
 	if(!outputFileName){
-		fprintf(stderr,"Problem allocating memory for outputFileName.\n");
+		fprintf(stderr,"Problem allocating heap memory for char *outputFileName.\n");
 		return -1;
 	}
 
@@ -55,22 +60,39 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 
 	outputFileName[inputStringLength + folderStringLength] = '\0';
 
-	printf("Opened:\n%s\n\n",outputFileName);
-
 	FILE *out = NULL;
 
 	out = fopen(outputFileName,"w");
 
+	//Below we have two different forms of failure outlined for writing the 
+	//output text files. In the first, the program suspects the user input is
+	//incorrect and is a bad path, and signals to the main routine to reset the
+	//Tracker object's default path to the project directory a la "". In the 
+	//second case, this reset has already been performed, and so the program
+	//fails and exits, notifying the user that the video files can still be 
+	//recovered.
+	if(!out && strcmp(this->textFilePath,"")){
+		fprintf(stderr,"ERROR: failed to open output text file: \n%s\n\n",outputFileName);
+		return DIRECTORY_NAME_FAILURE;
+	}
+
+	if(!(out || strcmp(this->textFilePath,""))){
+		fprintf(stderr,"ERROR: failed to open output text file: \n%s\n\n",outputFileName);
+		return EMPTY_DIRECTORY_NAME_FAILURE;
+	}
+
 	if(!out){
-		fprintf(stderr,"ERROR: failed to open output text file.\n");
+		fprintf(stderr,"ERROR: failed to open output text file: \n%s\n\n",outputFileName);
 		return -1;
 	}
 
+	printf("Opened:\n%s\n\n",outputFileName);
+
 	CvCapture *p_capVideo = NULL;
-	p_capVideo = cvCaptureFromAVI("raw_footage2-0000.avi");
+	p_capVideo = cvCaptureFromAVI(videoFileName);
 
 	if(!p_capVideo){
-		fprintf(stderr,"Failure initializing video stream\n");
+		fprintf(stderr,"Failure initializing video stream for file %s\n\n",videoFileName);
 		return -1;
 	}
 
@@ -130,8 +152,6 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 
 	fps = cvGetCaptureProperty(p_capVideo, CV_CAP_PROP_FPS);
 
-	printf("AVI FPS: %f\n",fps);
-
 	p_imgOriginal = cvQueryFrame(p_capVideo);	//Get frame
 
 	//fprintf(out, "Timestamp\tRx\tRy\tGx\tGy\tBx\tBy\tYx\tYy\n");
@@ -144,7 +164,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 	while(1){								//Use ESC key to exit
 
 		if(!p_imgOriginal){
-			printf("\nReached end of video file.\n\n");
+			printf("Reached end of video file.\n\n");
 			break;
 		}
 		
@@ -319,4 +339,9 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 	cvDestroyWindow("Processed");
 
 	return 0;
+}
+
+void Tracker::ResetFilePath()
+{
+	strcpy(this->textFilePath,"");
 }
