@@ -1,6 +1,9 @@
 /* File: CameraCap.cpp
    Author: Cam Cogan
    Desc: Implementation file for CameraCap class
+   Credits: Several functions below use code  derived from software developed
+            by Point Grey Research, Inc., without whose cameras and 
+	    accompanying API this project would not have been possible.
 */
 
 #include "CameraCap.h"
@@ -9,7 +12,7 @@
 
 CameraCap::CameraCap(unsigned int nF)
 {
-  nFrames = nF;
+	nFrames = nF;
 	nCameras = 0;
 }
 
