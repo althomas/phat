@@ -13,11 +13,14 @@
 int captureVideo(CameraCap *cam);
 
 int main(){
-  char userFileName[512];
+	char userFileName[BUFFER_SIZE];
 	char userInput[32];
 	int numFrames = 0;
 	int strlength = 0;
 	int analysisFailure = -1;
+	int i = 0;
+	char videoFileName[BUFFER_SIZE];
+	char textFileName[BUFFER_SIZE];
 
 	for(int i = 0; i < 32; i++){
 		userInput[i] = 0;
@@ -55,11 +58,13 @@ int main(){
 	userInput[0] = 'r';
 
 	while(!(userInput[0] == 'y' || userInput[0] == 'Y')){
-		printf("\n\nPlease input path to folder in which to place output text files. Note that:\n");
-		printf("\ta) You must use '\\\\' to indicate a '\\\' in the path name, and\n");
-		printf("\tb) You must place a '\\\\' after the folder name.\n\n");
+		printf("\nPlease input path to folder in which to place output text files. Note that:\n");
+		printf("\ta) You must use '\\\\' to indicate a '\\' in the path name, and\n");
+		printf("\tb) You must place a terminating '\\\\' after the folder name.\n");
+		printf("\tc) You may place the output text files in the project directory by\n");
+		printf("\t   entering an empty line.\n\n");
 		fgets(userFileName, BUFFER_SIZE, stdin);
-		printf("Received folder location:\n\n%s\n\nEnter 'y' if correct, or anything else to try again.\n\n",userFileName);
+		printf("\nReceived folder location:\n\n%s\nEnter 'y' if correct, or anything else to re-enter directory name.\n\n",userFileName);
 		fgets(userInput, 32, stdin);
 	}
 
@@ -72,10 +77,35 @@ int main(){
 
 	Tracker *phatTracker = new Tracker(userFileName);
 
-	analysisFailure = phatTracker->AnalyzeVideo(0,"test0");
+	for(i = 0; i < phatCap->getNumCameras(); i++){
+		//Retry previous entry if there was a problem with directory location.
+		if(analysisFailure == DIRECTORY_NAME_FAILURE){
+			i--;
+		}
 
-	if(analysisFailure){
-		printf("A problem occurred while analyzing the video files. These files can be found in the project folder.\n");
+		sprintf(videoFileName, "raw_footage%d-0000.avi", i);
+		sprintf(textFileName, "beaconLocationData%d.txt",i);
+
+		printf("Analyzing video %d of %d...\n\n", i + 1, phatCap->getNumCameras());
+
+		analysisFailure = phatTracker->AnalyzeVideo(videoFileName,textFileName);
+
+		if(analysisFailure == DIRECTORY_NAME_FAILURE){
+			printf("A problem occurred while analyzing the video file: \n%s\n\n",videoFileName);
+			printf("This may be a problem with output text file destination.\n");
+			printf("Directory for output text files changed to project directory.\n\n");
+			phatTracker->ResetFilePath();
+		} else if(analysisFailure == EMPTY_DIRECTORY_NAME_FAILURE){
+			printf("A problem occurred while analyzing the video file: \n%s\n\n",videoFileName);
+			printf("Failure writing output text files in project directory.\n");
+			delete phatCap, phatTracker;
+			return -1;
+		} else if(analysisFailure){
+			printf("A problem occurred while analyzing the video file: \n%s\n\n",videoFileName);
+			printf("Video files can be recovered in project directory.\n");
+			delete phatCap, phatTracker;
+			return -1;
+		}
 	}
 
 	delete phatCap, phatTracker;
@@ -103,13 +133,12 @@ int captureVideo(CameraCap *cam){
 				printf("Please enter the number of frames to capture from each camera.\n\n");
 				fgets(userInput, 32, stdin);
 				numFrames = atoi(userInput);
-
 				while(numFrames < 1){
 					printf("\nInvalid entry detected. Please enter a positive integer value for number of\nframes to capture.\n\n");
 					fgets(userInput, 32, stdin);
 					numFrames = atoi(userInput);
-					cam->setNumFrames((unsigned int) numFrames);
 				}
+				cam->setNumFrames((unsigned int) numFrames);
 			} else {
 				return -1;
 			}
