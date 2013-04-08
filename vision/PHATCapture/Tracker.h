@@ -16,16 +16,19 @@
 #include<string>
 
 #define BUFFER_SIZE 512
+#define DIRECTORY_NAME_FAILURE -2
+#define EMPTY_DIRECTORY_NAME_FAILURE -3
 
 class Tracker
 {
 private:
-  char *textFilePath;
+	char *textFilePath;
 
 public:
 	Tracker(const char *outputFilePath);
 	~Tracker();
 	int AnalyzeVideo(const char *videoFileName, const char *textFileName);
+	void ResetFilePath();
 };
 
 #endif
