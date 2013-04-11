@@ -202,58 +202,49 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 			break;
 		}
 		
-		//Locate beacons for each color in frame
+		//Filter the original frame for the beacons based on RGB values derived
+		//experimentally.
 
-		cvInRangeS(p_imgOriginal,			//Function input
-				  CV_RGB(175, 0, 0),		//Min filtering value--if color is greater or equal to this...
-				  CV_RGB(255, 120, 120),	//Max filtering value--...and if color is less than this
-				  p_imgProcessedRed);		//Function output (void function, paramter passed by reference)
+		cvInRangeS(p_imgOriginal,		//Function input
+				  CV_RGB(220, 0, 0),	//Min filtering value--if color is greater or equal to this...
+				  CV_RGB(255, 60, 20),	//Max filtering value--...and if color is less than this
+				  p_imgProcessedRed);	//Function output (void function, paramter passed by reference)
 
 		cvInRangeS(p_imgOriginal,			
-				  CV_RGB(0, 170, 0),		
-				  CV_RGB(200, 255, 160),	
+				  CV_RGB(40, 100, 0),		
+				  CV_RGB(155, 255, 20),	
 				  p_imgProcessedGrn);		
 		
 		cvInRangeS(p_imgOriginal,			
-				  CV_RGB(0, 0, 170),		
-				  CV_RGB(120, 120, 255),	
+				  CV_RGB(0, 50, 205),		
+				  CV_RGB(50, 255, 255),	
 				  p_imgProcessedBlu);		
 
+		//Yellow's tricky; set to dummy values for white right now
 		cvInRangeS(p_imgOriginal,			
-				  CV_RGB(210, 180, 40),		
-				  CV_RGB(255, 255, 150),	
+				  CV_RGB(250, 250, 250),		
+				  CV_RGB(255, 255, 255),	
 				  p_imgProcessedYlo);		
 
 		//Allocate necessary memory variable to pass into cvHoughCircles
 		p_strStorage = cvCreateMemStorage(0);
 
-		//Here, we smooth the images for each color, making it easier for Hough Circles to work with
-
-		cvSmooth(p_imgProcessedRed,			//Function input
-				 p_imgProcessedRed,			//Function output (void return type, so pass by reference)
-				 CV_GAUSSIAN,				//Use Gaussian filter (averages nearby pixels, with closest weighted more)
-				 9,							//Smoothing window width
-				 9);						//Smoothing window height
-
-		cvSmooth(p_imgProcessedGrn,			
-				 p_imgProcessedGrn,			
-				 CV_GAUSSIAN,			
-				 9,							
-				 9);						
-
-		cvSmooth(p_imgProcessedBlu,			
-				 p_imgProcessedBlu,			
-				 CV_GAUSSIAN,		
-				 9,				
-				 9);			
-
-		cvSmooth(p_imgProcessedYlo,		
-				 p_imgProcessedYlo,	
-				 CV_GAUSSIAN,	
-				 9,				
-				 9);		
-
 		for(i = 0; i < NUM_BEACONS; i++){
+			//Here, we smooth the images for each color, making it easier for
+			//Hough Circles to work with. This blur operation is done with a 
+			//large window size (21) to allow the formation of blobs in the
+			//processed images. To ensure that Hough Circles can pick up these
+			//blobs, which may be a faint gray, the images are then saturated.
+			//The black background stays black, and the detected blobs are 
+			//amplified to pure white from gray.
+			cvSmooth(processedImages[i],
+				     processedImages[i],
+					 CV_GAUSSIAN,
+					 21,
+					 21);
+
+			cvScale(processedImages[i],processedImages[i],255.0,0.0);
+
 			//Below we grab the data from each color, one at a time, and write the location of the beacons, along with the timestamp
 			//of the data in question, to an output file.
 			p_seqCircles = cvHoughCircles(processedImages[i],	//Input image; note that this HAS TO BE GRAYSCALE
@@ -261,10 +252,10 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 										CV_HOUGH_GRADIENT,	//Two-pass algorithm for detecting circles
 										2,				//Size of image divided by this value gives accumulator resolution
 										processedImages[i]->height,	//Min distance in pixels between the centers of detected circles
-										100,				//High threshold of the Canny edge detector, called by cvHoughCircle
-										50,				//Low threshold " " " ...; as rule of thumb, low should be half of high
-										3,				//Minimum circle radius in pixels
-										200);				//Maximum circle radius in pixels			
+										100,			//High threshold of the Canny edge detector, called by cvHoughCircle
+										10,				//Low threshold " " " ...; is set low to allow better blob detection
+										4,				//Minimum circle radius in pixels
+										50);			//Maximum circle radius in pixels			
 
 			//Extract data from result of Hough Circles algorithm into data_out; use zeros to indicate no beacon found.
 			if(p_seqCircles->total){
@@ -297,7 +288,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 						 cvPoint(cvRound(data_out[i * 2]), //Circle x coordinate
 						 cvRound(data_out[i * 2 + 1])),    //Circle y coordinate
 						 10,						//Circle of radius 10
-						 CV_RGB(255, 255, 255),		//White circle
+						 CV_RGB(120, 120, 120),		//Gray circle
 						 3);						//3 pixels thick
 				}
 				break;
@@ -308,7 +299,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 						 cvPoint(cvRound(data_out[i * 2]),
 						 cvRound(data_out[i * 2 + 1])),
 						 10,						
-						 CV_RGB(255, 255, 255),		
+						 CV_RGB(120, 120, 120),		
 						 3);				
 				}
 				break;
@@ -319,7 +310,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 						 cvPoint(cvRound(data_out[i * 2]),
 						 cvRound(data_out[i * 2 + 1])),
 						 10,				
-						 CV_RGB(255, 255, 255),	
+						 CV_RGB(120, 120, 120),	
 						 3);						
 				}
 				break;
@@ -331,7 +322,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 						 cvPoint(cvRound(data_out[i * 2]),
 						 cvRound(data_out[i * 2 + 1])),
 						 10,			
-						 CV_RGB(255, 255, 255),
+						 CV_RGB(120, 120, 120),
 						 3);				
 				}
 				break;
