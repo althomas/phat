@@ -53,7 +53,7 @@ while (moreData)
   time_in = in(cin,1);
   time_vis = vis(cvis,1);
   
-  if (time_in <= time_vis)
+  if (time_in < time_vis)
     % predict
 
     u = in(cin,2:end);            % inertial measurements
@@ -63,13 +63,29 @@ while (moreData)
     x(k+1,1) = time_in;
     [x(k+1,2:end), P] = ekf.predict(f, x(k,2:end), u, t, P, Q);
     cin = cin + 1;
-  else
+  elseif (time_in > time_vis)
     % update
     z = vis(cvis,2:end);      % measurments from vision                   
     t = 0; % only need time for IMUs
     x(k+1,1) = time_vis;    
-    [x(k+1,2:end), P] = ekf.update(x(k,2:end), u, t, P, h, z, R);          
-    cvis = cvis + 1;  
+    [x(k+1,2:end), P] = ekf.update(x(k,2:end), P, h, z, R);          
+    cvis = cvis + 1;
+  else 
+    % both updates at same time
+    % predict  
+    u = in(cin,2:end);            % inertial measurements
+    t = time_in - lastts;
+    lastts = time_in;    
+    
+    [x_apri, P] = ekf.predict(f, x(k,2:end), u, t, P, Q);
+    cin = cin + 1;
+
+    % update
+    z = vis(cvis,2:end);      % measurments from vision                   
+    x(k+1,1) = time_vis;    
+    [x(k+1,2:end), P] = ekf.update(x_apri, P, h, z, R);          
+    cvis = cvis + 1;
+
   end
 
   k = k+1;

@@ -39,9 +39,9 @@ function f = ekf()
   
   end
     
-  function [x_apost,P_apost]= update(x,u,t,P,hmeas,z,R)
+  function [x_apost,P_apost]= update(x,P,hmeas,z,R)
     % UPDATE
-    [z_pred,H]=jaccsd(hmeas,x,u,t);    %nonlinear measurement and linearization
+    [z_pred,H]=jaccsd(hmeas,x,0,0);    %nonlinear measurement and linearization
                                            % predicted measurement=hmeas(x_apriori), H
 
     PHtrans = P*H';
