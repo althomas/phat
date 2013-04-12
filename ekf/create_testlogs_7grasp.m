@@ -1,4 +1,4 @@
-% Ashleigh Thomas thomasas@seas.upenn.edu
+% Ashleigh Thomas thomasas@seas.upenn.edu University of Pennsylvania
 % Creates test files for use in EKF. 
 % Log files are stored in ./logs
 % This creates full-sized log files for 7 IMU/LED pairs
@@ -20,13 +20,16 @@ s_vis=[ -1; 2; 0; % arm
 ];                    % initial state
 r_in=0.1;                                    %std of measurement 
 r_vis=0.1;
-
+hz_in = 140;
+hz_vis = 15;
+period_in = 1/hz_in;
+period_vis = 1/hz_vis;
 
 
 
 for k=1:N
 
-  % movement!
+  % movement
   if k > 25
     s_in = s_in - [ 0; 0; 0;
                     0; 0; 0; 
@@ -51,13 +54,17 @@ for k=1:N
   end                      
   est_vis(:,k) = truth_vis(:,k) + cat(1,0,r_vis*randn(12,1));                         
 
-  truth_in(:,k)= s_in;                            
-  est_in(:,k) = truth_in(:,k) + r_in*randn(n_in,1);             
+  truth_in(:,k)= s_in;
+
+  % only one IMU at a time
+  imu = k mod 7;                            
+  est_in(:,k) = cat(1,imu,truth_in(imu,k) + r_in*randn(1,1));             
 
 end
 
-
-x = (1:N)'; % timestamp
+%timestamps
+x_in = ( period_in*(1:N) )'; 
+x_vis = ( period_vis*(1:N) )';
 
 testlogfile_in = './logs/test_in_7graspmv.txt';
 truthlogfile_in = './logs/test_in_7graspmv_truth.txt';
