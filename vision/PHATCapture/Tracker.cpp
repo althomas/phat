@@ -108,7 +108,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 	IplImage *p_imgProcessedRed = NULL;	//Filtered for red		
 	IplImage *p_imgProcessedBlu = NULL;	//Filtered for blue
 	IplImage *p_imgProcessedGrn = NULL;	//Filtered for green
-	IplImage *p_imgProcessedWit = NULL;	//Filtered for yellow
+	IplImage *p_imgProcessedWit = NULL;	//Filtered for white
 	IplImage *p_imgProcessed = NULL;	//The four above images combined for viewing
 
 	//An array to hold the processed images for each color, allowing us to
