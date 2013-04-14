@@ -85,7 +85,14 @@ for k=1:length(t_vis)
   end
 
   % add normally distributed noise
-  est_vis(k,:) = truth_vis(k,:) + [0 0 r_vis*randn(1,9)];                         
+  est_vis(k,:) = truth_vis(k,:) + [0 0 r_vis*randn(1,9)];
+
+  % add randomly not being able to detect beacons (
+  for i=1:3
+    if rand < .07
+     est_vis(k,(i-1)*3+3:(i-1)*3+5) = [0 0 0];
+    end
+  end
 
 end
 

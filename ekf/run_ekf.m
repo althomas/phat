@@ -36,7 +36,7 @@ cin = 1;
 cvis = 1;
 
 % IMUs update only one at a time, so will have to keep track of previous timestamp
-lastts = in(1,1);
+lastts = in(1,1)*ones(1,6);
 
 % at this point we have to match up timestamps (and length!), but for now we assume
 % they match up perfectly
@@ -57,8 +57,9 @@ while (moreData)
     % predict
 
     u = in(cin,2:end);            % inertial measurements
-    t = time_in - lastts;
-    lastts = time_in;    
+    imu = u(1);
+    t = time_in - lastts(imu);
+    lastts(imu) = time_in;    
     
     x(k+1,1) = time_in;
     [x(k+1,2:end), P] = ekf.predict(f, x(k,2:end), u, t, P, Q);
@@ -74,8 +75,9 @@ while (moreData)
     % both updates at same time
     % predict  
     u = in(cin,2:end);            % inertial measurements
-    t = time_in - lastts;
-    lastts = time_in;    
+    imu = u(1);    
+    t = time_in - lastts(imu);
+    lastts(imu) = time_in;    
     
     [x_apri, P] = ekf.predict(f, x(k,2:end), u, t, P, Q);
     cin = cin + 1;

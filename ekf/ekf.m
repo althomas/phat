@@ -30,6 +30,7 @@ function f = ekf()
     
     full_u = zeros(6,3);
     full_u( u(1),: ) = u(2:end);
+    
     % PREDICT
     [x_apri,F]=jaccsd(fstate,x,full_u(1:end),t);  % nonlinear update and linearization at current state
 
@@ -59,18 +60,37 @@ function f = ekf()
     % we will organize the data as follows:
     %   arm, hand, thumb, index, middle, ring, pinky
     
-    if (z(1) == 0)
-      %z_measured = cat(1,z(2),z(1),z_pred(3),z(3),z_pred(5),z(4),z_pred(7));
-      %z_measured = cat(1,z(5:7),z(2:4),z_pred(4:6),z(8:10),z_pred(13:15),z(11:13),z_pred(19:21)); 
-      z_measured = [ z(2:4)  z_pred(4:6)   z(5:7)  z_pred(10:12)   z(8:10)  z_pred(16:18)  ]; 
-      %cat(1,z(5:7),z(2:4),[0;0;0],z(8:10),[0;0;0],z(11:13),[0;0;0]);
-    else  
-      %z_measured = cat(1,z_pred(1),z(1),z(2),z_pred(4),z(3),z_pred(6),z(4));
-      %z_measured = cat(1,z_pred(1:3),z(2:4),z(5:7),z_pred(10:12),z(8:10),z_pred(16:18),z(11:13));
-      z_measured = [ z_pred(1:3)  z(2:4)   z_pred(7:9)  z(5:7)   z_pred(13:15)  z(8:10)  ];
-      %cat(1,[0;0;0],z(2:4),z(5:7),[0;0;0],z(8:10),[0;0;0],z(11:13));
-    end
+
     
+
+    if (z(1) == 0) 
+      % if there is no data from cameras
+      if z(2:4) == [0 0 0]
+        z(2:4) = z_pred(1:3);
+      end
+      if z(5:7) == [0 0 0]
+        z(5:7) = z_pred(7:9);
+      end
+      if z(8:10) == [0 0 0]
+        z(8:10) = z_pred(13:15);
+      end
+      
+      z_measured = [ z(2:4)  z_pred(4:6)   z(5:7)  z_pred(10:12)   z(8:10)  z_pred(16:18)  ]; 
+        
+    else 
+      % if there is no data from cameras
+      if z(2:4) == [0 0 0]
+        z(2:4) = z_pred(4:6);
+      end
+      if z(5:7) == [0 0 0]
+        z(5:7) = z_pred(10:12);
+      end
+      if z(8:10) == [0 0 0]
+        z(8:10) = z_pred(16:18);
+      end 
+
+      z_measured = [ z_pred(1:3)  z(2:4)   z_pred(7:9)  z(5:7)   z_pred(13:15)  z(8:10)  ];
+    end
   
     y = z_measured(1:end) - z_pred;   
     
