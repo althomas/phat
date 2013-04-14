@@ -18,7 +18,7 @@ void measure(int select);
 unsigned long overflow = 0;
 unsigned long micros;
 int raw_data_buffer[3];
-int ax, ay, az, gx, gy, gz;
+int ax, ay, az, gx, gy, gz, mx, my, mz;
 int i = 0;
 int j = 0;
 int sel;
@@ -28,11 +28,20 @@ int bar2[6];
 int bar3[6];
 int bar4[6];
 int bar5[6];
-int bar6[6];
+
+ISR(TIMER1_COMPB_vect){
+	set(TIFR1,OCF1B);
+	OCR1B += 521;
+}
+
+ISR(TIMER1_OVF_vect){
+	set(TIFR1,TOV1);
+	TCNT1 = 0;
+}
 
 ISR(TIMER3_OVF_vect){
 	set(TIFR3,TOV3);
-	sel = overflow % 4;
+	sel = overflow % 6;
 	measure(sel);
 	overflow++;
 }
@@ -67,11 +76,6 @@ void selectIMU(int select){
 		case 5:
 			set(PORTF,0);
 			clear(PORTF,1);
-			set(PORTB,1);
-			break;
-		case 6:
-			clear(PORTF,0);
-			set(PORTF,1);
 			set(PORTB,1);
 			break;
 	}
@@ -144,16 +148,11 @@ void calibrate(int select){
 				bar5[i] = bar[i];
 			}
 			break;
-		case 6:
-			for(i = 0; i < 6; i++){
-				bar6[i] = bar[i];
-			}
-			break;
 	}
 }
 
 void measure(int select){
-	m_green(TOGGLE);
+	//m_green(TOGGLE);
 	toggle(PORTB,2);
 	int* bar;
 
@@ -178,13 +177,10 @@ void measure(int select){
 		case 5:
 			bar = bar5;
 			break;
-		case 6:
-			bar = bar6;
-			break;
 	}
 	
-	m_usb_tx_int(select);
-	m_usb_tx_string("\t");
+	//m_usb_tx_int(select);
+	//m_usb_tx_string("\t");
 	
 	micros = 4096 * overflow + (unsigned long)((float)(((unsigned long)(TCNT3H) << 8) | TCNT3L) * 4096 / 65536);
 	m_usb_tx_ulong(micros);
@@ -210,22 +206,49 @@ void measure(int select){
 	m_usb_tx_int(gy);
 	m_usb_tx_string("\t");
 	m_usb_tx_int(gz);
+	m_usb_tx_string("\t");
+	
+	m_imu_mag(raw_data_buffer);
+	mx = raw_data_buffer[0];
+	my = raw_data_buffer[2];
+	mz = raw_data_buffer[1];
+	m_usb_tx_int(mx);
+	m_usb_tx_string("\t");
+	m_usb_tx_int(my);
+	m_usb_tx_string("\t");
+	m_usb_tx_int(mz);
 	m_usb_tx_string("\n");
 }
 
 int main(void)
 {
+	unsigned long runtime = 0;
+	
 	m_clockdivide(0);	// 16 MHz
 
+	OCR1B = 521;  // initialize output compare register (interrupt every 521 cycles)
+	set(DDRB,6);  // set B6 as output (output compare pin)
+	
+	set(DDRB,4);  // set B4 as output (green LED for data synchronization)
+	set(PORTB,4);  // turn on green LED on B4
+	
 	set(DDRF,0);  // set F0 as output
 	set(DDRF,1);  // set F1 as output
 	set(DDRB,1);  // set B1 as output
+	
 	m_usb_init();
 	while(!m_usb_isconnected()){
 		m_green(ON);
 	}
 	m_green(OFF);
 	set(DDRB,2);
+
+	while(!m_usb_rx_available());  // wait for runtime argument from Python script
+	m_wait(5);
+	while(m_usb_rx_available()){
+		runtime = runtime * 10 + (m_usb_rx_char() - '0');  // build number of seconds
+	}
+	runtime = runtime * 1000000;  // convert to microseconds
 
 	clear(PORTF,0);
 	clear(PORTF,1);
@@ -235,6 +258,7 @@ int main(void)
 		m_red(ON);  // RED LED turns on if there's a problem
 		m_usb_tx_string("IMU0 could not connect");
 	}
+	/*
 	set(PORTF,0);
 	m_wait(10);
 	if(!m_imu_init(0,1)){
@@ -254,97 +278,42 @@ int main(void)
 		m_red(ON);  // RED LED turns on if there's a problem
 		m_usb_tx_string("IMU3 could not connect");
 	}
-
-	calibrate(0);
-	calibrate(1);
-	calibrate(2);
-	calibrate(3);
+	*/
+	//calibrate(0);
+	//calibrate(1);
+	//calibrate(2);
+	//calibrate(3);
 	
-	// ENABLE Timer 3 overflow interrupt
+	// Initialize Timer 1 output compare interrupt 
+	set(TIMSK1,OCIE1B);
+	set(TCCR1B,CS12);
+	clear(TCCR1B,CS11);
+	set(TCCR1B,CS10);
+	clear(TCCR1B,WGM13);
+	set(TCCR1B,WGM12);
+	clear(TCCR1A,WGM11);
+	clear(TCCR1A,WGM10);
+	clear(TCCR1A,COM1B1);
+	set(TCCR1A,COM1B0);
+	
+	// Initialize Timer 1 overflow interrupt
+	set(TIMSK1,TOIE1);
+	
+	// Initialize Timer 3 overflow interrupt
 	overflow = 0;
 	set(TIMSK3,TOIE3);
+	clear(TCCR3B,CS32);
+	clear(TCCR3B,CS31);
 	set(TCCR3B,CS30);
-	sei(); // enable global interrupts	
-
-	while(1){
-		//measure(0);
-		//m_wait(50);
-		//measure(1);
-		//m_wait(50);
-		//measure(2);
-		//m_wait(50);
-		//measure(3);
-		//m_wait(50);
-		//measure(4);
-		//m_wait(50);
-		//measure(5);
-		//m_wait(50);
-		//measure(6);
-		//m_wait(50);
-	}
 	
-/*		
-		m_imu_accel(raw_data_buffer);
-		ax = raw_data_buffer[0];
-		ay = raw_data_buffer[1];
-		az = raw_data_buffer[2];
-		m_usb_tx_int(gx);
-		m_usb_tx_string("\t");
-		m_usb_tx_int(gy);
-		m_usb_tx_string("\t");
-		m_usb_tx_int(gz);
-		m_usb_tx_string("\t");
-		
-		m_imu_mag(raw_data_buffer);
-		gx = raw_data_buffer[0];
-		gz = raw_data_buffer[1];
-		gy = raw_data_buffer[2];
-		m_usb_tx_int(gx);
-		m_usb_tx_string("\t");
-		m_usb_tx_int(gy);
-		m_usb_tx_string("\t");
-		m_usb_tx_int(gz);
-		m_usb_tx_string("\n");
-		
-		m_wait(75);
-	}
-*/
-/*
-	while(1){
+	sei();  // enable global interrupts
+	clear(PORTB,4);  // turn off green LED --> signal to camera
+	
+	while(overflow * 4096 < runtime){
 		m_green(TOGGLE);
 	}
+	m_usb_tx_string(" ");
 	m_green(OFF);
-*/
-	//for(i = 0; i < 100; i++){
-		//m_green(TOGGLE);
-		//toggle(PORTB,2);
-		//timearray[i] = (unsigned long)(4096 * overflow) + (unsigned long)((float)(((unsigned long)(TCNT3H) << 8) | TCNT3L) * 4096 / 65535);
-/*		
-		m_imu_accel(raw_data_buffer);
-		datarray[i][0] = raw_data_buffer[0] - axbar;
-		datarray[i][1] = raw_data_buffer[1] - aybar;
-		datarray[i][2] = raw_data_buffer[2] - azbar;
-		m_imu_gyro(raw_data_buffer);
-		datarray[i][3] = raw_data_buffer[0] - gxbar;
-		datarray[i][4] = raw_data_buffer[1] - gybar;
-		datarray[i][5] = raw_data_buffer[2] - gzbar;
-		
-		//m_wait(10);  // delay(1)
-	//}
-	
-	
-	for(i = 0; i < 250; i++){
-		m_usb_tx_ulong(timearray[i]);
-		//m_usb_tx_string("\t");
-		//for(j = 0; j < 6; j++){
-		//	m_usb_tx_int(datarray[i][j]);
-		//	m_usb_tx_string("\t");
-		//	m_wait(10);
-		//}
-		m_wait(20);
-		m_usb_tx_string("\n");
-		m_wait(20);
-	}
-	cli();
-	*/
+	//cli();
+	while(1);
 }
