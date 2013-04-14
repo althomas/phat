@@ -41,8 +41,8 @@ ISR(TIMER1_OVF_vect){
 
 ISR(TIMER3_OVF_vect){
 	set(TIFR3,TOV3);
-	sel = overflow % 6;
-	measure(sel);
+	//sel = overflow % 2;
+	measure(0);
 	overflow++;
 }
 
@@ -250,9 +250,9 @@ int main(void)
 	}
 	runtime = runtime * 1000000;  // convert to microseconds
 
-	clear(PORTF,0);
-	clear(PORTF,1);
-	clear(PORTB,1);
+	clear(PORTF,0);  // S0
+	clear(PORTF,1);  // S1
+	clear(PORTB,1);  // S2
 	m_wait(10);
 	if(!m_imu_init(0,1)){
 		m_red(ON);  // RED LED turns on if there's a problem
@@ -278,11 +278,27 @@ int main(void)
 		m_red(ON);  // RED LED turns on if there's a problem
 		m_usb_tx_string("IMU3 could not connect");
 	}
+	set(PORTB,1);
+	clear(PORTF,0);
+	clear(PORTF,1);
+	m_wait(10);
+	if(!m_imu_init(0,1)){
+		m_red(ON);  // RED LED turns on if there's a problem
+		m_usb_tx_string("IMU4 could not connect");
+	}
+	set(PORTF,0);
+	m_wait(10);
+	if(!m_imu_init(0,1)){
+		m_red(ON);  // RED LED turns on if there's a problem
+		m_usb_tx_string("IMU5 could not connect");
+	}
 	*/
 	//calibrate(0);
 	//calibrate(1);
 	//calibrate(2);
 	//calibrate(3);
+	//calibrate(4);
+	//calibrate(5);
 	
 	// Initialize Timer 1 output compare interrupt 
 	set(TIMSK1,OCIE1B);
