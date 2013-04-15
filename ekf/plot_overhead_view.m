@@ -3,11 +3,18 @@
 
 function plot_overhead_view (x) 
 
-start = 25;
+start = 50;
 
+clf;
 hold on;
 
-plot(x(1,start:end), x(2,start:end), 'ro-', x(4,start:end), x(5,start:end), 'go-', x(7,start:end), x(8,start:end), 'bo-', x(10,start:end), x(11,start:end), 'ro-', x(13,start:end), x(14,start:end), 'mo-', x(16,start:end), x(17,start:end), 'ko-', x(19,start:end), x(20,start:end), 'bo-' ); 
+plot(x(start:end,2), x(start:end,3), 'ro-')
+plot(x(start:end,5), x(start:end,6), 'go-')
+plot(x(start:end,8), x(start:end,9), 'bo-')
+plot(x(start:end,11), x(start:end,12), 'ro-');
+plot(x(start:end,14), x(start:end,15), 'mo-');
+plot(x(start:end,17), x(start:end,18), 'ko-');
+%plot(x(start:end,20), x(start:end,21), 'bo-' ); 
 
 %plot(x(1,2:end), x(2,2:end), 'ro-');
 
