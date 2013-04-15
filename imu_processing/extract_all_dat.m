@@ -7,16 +7,16 @@ addpath('madgwick_algorithm_matlab/quaternion_library'); %we are going to need t
 %addpath('IMUcalibration/IMUcalibration/IMU7'); %contains the calibration files for each IMU
 addpath('madgwick_algorithm_matlab');
 
-datafile = 'data.txt'; %%change the input file name
+datafile = 'glove_test2.txt'; %%change the input file name
 delim = '\t'; %% we are working with tab-delimited files
-fullinput = importData(datafile,delim);
+fullinput = importdata(datafile,delim);
 
-datimu0 = zeros(length(fullinput),10);
-datimu1 = zeros(length(fullinput),10);
-datimu2 = zeros(length(fullinput),10);
-datimu3 = zeros(length(fullinput),10);
-datimu4 = zeros(length(fullinput),10);
-datimu5 = zeros(length(fullinput),10);
+datimu0 = zeros(length(fullinput)/6,10);
+datimu1 = zeros(length(fullinput)/6,10);
+datimu2 = zeros(length(fullinput)/6,10);
+datimu3 = zeros(length(fullinput)/6,10);
+datimu4 = zeros(length(fullinput)/6,10);
+datimu5 = zeros(length(fullinput)/6,10);
 %datimu6 = zeros(length(fullinput),10);
 
 counter0 = 0;
@@ -61,13 +61,48 @@ end
 %extract, convert, and calibrate the data from each IMU
 
 [time0 accel0 gyro0 magn0] = dat_extract('dat0xp.txt','dat0xn.txt','dat0yp.txt', 'dat0yn.txt','dat0zp.txt','dat0zn.txt', datimu0);
-[time1 accel1 gyro1 magn1] = dat_extract('dat1xp.txt','dat1xn.txt','dat1yp.txt', 'dat1yn.txt','dat1zp.txt','dat1zn.txt', datimu1);
+[time1 accel1 gyro1 magn1] = dat_extract('dat7xp.txt','dat7xn.txt','dat7yp.txt', 'dat7yn.txt','dat7zp.txt','dat7zn.txt', datimu1);
 [time2 accel2 gyro2 magn2] = dat_extract('dat2xp.txt','dat2xn.txt','dat2yp.txt', 'dat2yn.txt','dat2zp.txt','dat2zn.txt', datimu2);
 [time3 accel3 gyro3 magn3] = dat_extract('dat3xp.txt','dat3xn.txt','dat3yp.txt', 'dat3yn.txt','dat3zp.txt','dat3zn.txt', datimu3);
 [time4 accel4 gyro4 magn4] = dat_extract('dat4xp.txt','dat4xn.txt','dat4yp.txt', 'dat4yn.txt','dat4zp.txt','dat4zn.txt', datimu4);
 [time5 accel5 gyro5 magn5] = dat_extract('dat5xp.txt','dat5xn.txt','dat5yp.txt', 'dat5yn.txt','dat5zp.txt','dat5zn.txt', datimu5);
 %[time6 accel6 gyro6 magn6] = dat_extract('dat6xp.txt','dat6xn.txt','dat6yp.txt', 'dat6yn.txt','dat6zp.txt','dat6zn.txt', datimu6);
 
+%apply offset and scale for the magnetometer data --has to be done here,
+%can't be done in the m2
+
+magn0x = (magn0(:,1) - 7.325.*ones(length(magn0(:,1)),1))./478.8;
+magn0y = (magn0(:,2) - 132.605.*ones(length(magn0(:,2)),1))./503.007;
+magn0z = (magn0(:,3) - 25.099.*ones(length(magn0(:,3)),1))./466.445;
+
+magn1x = (magn1(:,1) - 14.523.*ones(length(magn1(:,1)),1))./483.016;
+magn1y = (magn1(:,2) + 166.266.*ones(length(magn1(:,2)),1))./537.540;
+magn1z = (magn1(:,3) + 52.696.*ones(length(magn1(:,3)),1))./457.337;
+
+magn2x = (magn2(:,1) - 14.346.*ones(length(magn2(:,1)),1))./485.878;
+magn2y = (magn2(:,2) + 151.004.*ones(length(magn2(:,2)),1))./498.971;
+magn2z = (magn2(:,3) - 7.399.*ones(length(magn2(:,3)),1))./452.192;
+
+magn3x = (magn3(:,1) + 3.807.*ones(length(magn3(:,1)),1))./507.577;
+magn3y = (magn3(:,2) + 149.197.*ones(length(magn3(:,2)),1))./490.679;
+magn3z = (magn3(:,3) - 113.054.*ones(length(magn3(:,3)),1))./500.417;
+
+magn4x = (magn4(:,1) + 11.898.*ones(length(magn4(:,1)),1))./497.647;
+magn4y = (magn4(:,2) - 138.081.*ones(length(magn4(:,2)),1))./501.624;
+magn4z = (magn4(:,3) - 317.285.*ones(length(magn4(:,3)),1))./467.103;
+
+magn5x = (magn5(:,1) - 18.274.*ones(length(magn5(:,1)),1))./498.209;
+magn5y = (magn5(:,2) + 156.761.*ones(length(magn5(:,2)),1))./500.586;
+magn5z = (magn5(:,3) - 39.877.*ones(length(magn5(:,3)),1))./483.893;
+
+
+%reform the magnetometer matrice
+magn0 = [magn0x magn0y magn0z];
+magn1 = [magn1x magn1y magn1z];
+magn2 = [magn2x magn2y magn2z];
+magn3 = [magn3x magn3y magn3z];
+magn4 = [magn4x magn4y magn4z];
+magn5 = [magn5x magn5y magn5z];
 
 %apply madgwick AHRS to the data from each IMU
 
@@ -242,7 +277,7 @@ for i = 1:6*length(vdat5)
 end
 
 
-dlmwrite('imudata.txt',result,'\t');
+dlmwrite('imudata2.txt',result,'\t');
 
 
 
