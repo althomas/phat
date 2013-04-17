@@ -27,7 +27,7 @@ private:
 public:
 	Tracker(const char *outputFilePath);
 	~Tracker();
-	int AnalyzeVideo(const char *videoFileName, const char *textFileName);
+	int AnalyzeVideo(const char *videoFileName, const char *textFileName, float timeStepFps);
 	void ResetFilePath();
 };
 

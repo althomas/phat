@@ -10,7 +10,7 @@
 %z axis --up
 %z axis --down
 
-function [wx wy wz osx osy osz osgx osgy osgz] = cal_calc(xp,xn,yp,yn,zp,zn)
+function [wx wy wz osx osy osz ] = cal_calc(xp,xn,yp,yn,zp,zn)
 	ascale = 8192;
     
 	x_xp = xp(:,2)./ascale;
@@ -35,9 +35,6 @@ function [wx wy wz osx osy osz osgx osgy osgz] = cal_calc(xp,xn,yp,yn,zp,zn)
 	osy = -(ypav + ynav)/(ypav - ynav);
 	osz = -(zpav + znav)/(zpav - znav);
     
-    osgx = sum(xp(:,5)) / length(xp(:,5));
-    osgy = sum(xp(:,6)) / length(xp(:,6));
-    osgz = sum(xp(:,7)) / length(xp(:,7));
 
 	
 end

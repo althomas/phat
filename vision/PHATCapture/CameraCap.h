@@ -2,7 +2,7 @@
    Author: Cam Cogan
    Desc: Header file for camera capture object. Adapted from TestPGCameras.cpp,
          this class wraps under-the-hood methods with private access and only
-  	 affords what was formerly the program's main method as a public function.
+		 affords what was formerly the program's main method as a public function.
 */
 
 #ifndef CAMERACAP_H_
@@ -10,6 +10,7 @@
 
 #include "FlyCapture2.h"
 #include <vector>
+#include <ctime>
 
 using namespace FlyCapture2;
 
@@ -18,6 +19,7 @@ class CameraCap
 private:
 	unsigned int nFrames;
 	unsigned int nCameras;
+	float expFPS;
 	enum AviType
 	{
 		UNCOMPRESSED,
@@ -36,6 +38,7 @@ public:
 	int CaptureFromCameras();
 	int getNumCameras();
 	void setNumFrames(unsigned int n);
+	float getFps();
 };
 
 #endif
