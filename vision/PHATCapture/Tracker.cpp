@@ -28,7 +28,7 @@ Tracker::~Tracker()
 	delete[] textFilePath;
 }
 
-int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
+int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName, float timeStepFps)
 {
 
 	char *outputFileName = (char *)malloc(sizeof(char) * BUFFER_SIZE);
@@ -108,7 +108,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 	IplImage *p_imgProcessedRed = NULL;	//Filtered for red		
 	IplImage *p_imgProcessedBlu = NULL;	//Filtered for blue
 	IplImage *p_imgProcessedGrn = NULL;	//Filtered for green
-	IplImage *p_imgProcessedWit = NULL;	//Filtered for white
+	IplImage *p_imgProcessedWit = NULL;	//Filtered for yellow
 	IplImage *p_imgProcessed = NULL;	//The four above images combined for viewing
 
 	//An array to hold the processed images for each color, allowing us to
@@ -182,18 +182,25 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 	p_imgProcessedBlu = cvCreateImage(p_imgSize, IPL_DEPTH_8U, 1);
 	p_imgProcessedWit = cvCreateImage(p_imgSize, IPL_DEPTH_8U, 1);
 
-	//Assign values to image buffer to allow for iteration
+	//Assign values to image buffer to allow for iteration.
 	processedImages[0] = p_imgProcessedRed;
-	processedImages[1] = p_imgProcessedGrn;
-	processedImages[2] = p_imgProcessedBlu;
-	processedImages[3] = p_imgProcessedWit;
-
-	double fps = 0.0;
-
-	fps = cvGetCaptureProperty(p_capVideo, CV_CAP_PROP_FPS);
+	processedImages[1] = p_imgProcessedBlu;
+	processedImages[2] = p_imgProcessedWit;
+	processedImages[3] = p_imgProcessedGrn;
 
 	//Deprecated fprintf statement outlining format of output text file
 	//fprintf(out, "Timestamp\tRx\tRy\tGx\tGy\tBx\tBy\tYx\tYy\n");
+
+	IplImage *progressBar = cvCreateImage(cvSize(400,30), IPL_DEPTH_8U, 3);
+	cvRectangle(progressBar, cvPoint(0,0), cvPoint(400,30), CV_RGB(147,137,83), CV_FILLED);
+
+	cvShowImage("Analysis Progress",progressBar);
+
+	int totalFrames = (int) cvGetCaptureProperty(p_capVideo,CV_CAP_PROP_FRAME_COUNT);
+	char percent[10];
+	CvFont font;
+	cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 0.4, 0.4, 0, 1, 8);
+
 	
 	while(1){
 
@@ -202,25 +209,33 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 			break;
 		}
 		
+		cvRectangle(progressBar, cvPoint(0,0), cvPoint(400,30), CV_RGB(167,156,93), CV_FILLED);
+		cvRectangle(progressBar, cvPoint(0,0),
+			cvPoint((400 / 100) * (frame_count * 100 / totalFrames),30),
+			CV_RGB((255 - (255 / 100 * (frame_count * 100 / totalFrames))),(255 / 100 * (frame_count * 100 / totalFrames)),0),
+			CV_FILLED);
+		sprintf(percent,"%d%%",(frame_count * 100 / totalFrames));
+		cvPutText(progressBar,percent,cvPoint(200,15),&font,CV_RGB(0,0,0));
+		cvShowImage("Analysis Progress",progressBar);
+
 		//Filter the original frame for the beacons based on RGB values derived
 		//experimentally.
 
 		cvInRangeS(p_imgOriginal,		//Function input
 				  CV_RGB(180, 0, 0),	//Min filtering value--if color is greater or equal to this...
-				  CV_RGB(255, 60, 20),	//Max filtering value--...and if color is less than this
+				  CV_RGB(255, 40, 20),	//Max filtering value--...and if color is less than this
 				  p_imgProcessedRed);	//Function output (void function, paramter passed by reference)
 
 		cvInRangeS(p_imgOriginal,			
-				  CV_RGB(40, 100, 0),		
-				  CV_RGB(155, 255, 20),	
+				  CV_RGB(0, 100, 60),		
+				  CV_RGB(40, 180, 80),	
 				  p_imgProcessedGrn);		
 		
 		cvInRangeS(p_imgOriginal,			
-				  CV_RGB(0, 50, 145),		
-				  CV_RGB(70, 255, 255),	
+				  CV_RGB(0, 45, 145),		
+				  CV_RGB(60, 100, 255),	
 				  p_imgProcessedBlu);		
 
-		//Yellow's tricky; set to dummy values for white right now
 		cvInRangeS(p_imgOriginal,			
 				  CV_RGB(180, 180, 180),		
 				  CV_RGB(255, 255, 255),	
@@ -254,8 +269,8 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 										processedImages[i]->height,	//Min distance in pixels between the centers of detected circles
 										100,			//High threshold of the Canny edge detector, called by cvHoughCircle
 										10,				//Low threshold " " " ...; is set low to allow better blob detection
-										4,				//Minimum circle radius in pixels
-										50);			//Maximum circle radius in pixels			
+										3,				//Minimum circle radius in pixels
+										70);			//Maximum circle radius in pixels			
 
 			//Extract data from result of Hough Circles algorithm into data_out; use zeros to indicate no beacon found.
 			if(p_seqCircles->total){
@@ -279,7 +294,9 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 				//First beacon: include timestamp. Note that timestamp values
 				//are calculated via the framerate, necessitating that the .avi
 				//file framerate reflects the real-time capture rate.
-				fprintf(out, "%f,%d,%d,", ((float) frame_count) / fps, (int) data_out[i * 2], (int) data_out[i * 2 + 1]);
+				fprintf(out, "%f,%d,%d,", ((float) frame_count) / timeStepFps,
+					(int) data_out[i * 2],
+					(int) data_out[i * 2 + 1]);
 				if(data_out[i * 2] != 0.0){
 					//Here we mark the beacon found in a visible window. This 
 					//is repeated for each beacon and the outputs are combined
@@ -342,7 +359,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 		//cvShowImage("Original", p_imgOriginal);	//Original image, with circle overlaid
 
 		//Combine filtered images, with overlaid circles, into one visible image
-		cvAddWeighted(p_imgProcessedBlu, 1, p_imgProcessedRed, 1, 0.0, p_imgProcessed);
+		cvAddWeighted(p_imgProcessedRed, 1, p_imgProcessedBlu, 1, 0.0, p_imgProcessed);
 		cvAddWeighted(p_imgProcessed, 1, p_imgProcessedGrn, 1, 0.0, p_imgProcessed);
 		cvAddWeighted(p_imgProcessed, 1, p_imgProcessedWit, 1, 0.0, p_imgProcessed);
 
@@ -391,6 +408,7 @@ int Tracker::AnalyzeVideo(const char *videoFileName, const char *textFileName)
 
 	cvDestroyWindow("Original");
 	cvDestroyWindow("Processed");
+	cvDestroyWindow("Analysis Progress");
 
 	return 0;
 }
