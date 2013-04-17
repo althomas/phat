@@ -3,20 +3,22 @@
 
 %%split the input data file into one file for each IMU-
 
-addpath('madgwick_algorithm_matlab/quaternion_library'); %we are going to need the quaternion stuff
-%addpath('IMUcalibration/IMUcalibration/IMU7'); %contains the calibration files for each IMU
-addpath('madgwick_algorithm_matlab');
+function []  = extract_all_dat(datafile,outfile)
+addpath('./madgwick_algorithm_matlab/quaternion_library'); %we are going to need the quaternion stuff
+addpath('IMUcalibration/IMUcalibration/IMU7'); %contains the calibration files for each IMU
+addpath('./madgwick_algorithm_matlab');
 
-datafile = 'glove_test2.txt'; %%change the input file name
+%datafile = 'glove_test041613-2.txt'; %%change the input file name
+%datafile = 'glove_test_041613-1.txt'; %%change the input file name
 delim = '\t'; %% we are working with tab-delimited files
 fullinput = importdata(datafile,delim);
 
-datimu0 = zeros(length(fullinput)/6,10);
-datimu1 = zeros(length(fullinput)/6,10);
-datimu2 = zeros(length(fullinput)/6,10);
-datimu3 = zeros(length(fullinput)/6,10);
-datimu4 = zeros(length(fullinput)/6,10);
-datimu5 = zeros(length(fullinput)/6,10);
+datimu0 = zeros((length(fullinput))/6,10);
+datimu1 = zeros((length(fullinput))/6,10);
+datimu2 = zeros((length(fullinput))/6,10);
+datimu3 = zeros((length(fullinput))/6,10);
+datimu4 = zeros((length(fullinput))/6,10);
+datimu5 = zeros((length(fullinput))/6,10);
 %datimu6 = zeros(length(fullinput),10);
 
 counter0 = 0;
@@ -103,13 +105,16 @@ magn2 = [magn2x magn2y magn2z];
 magn3 = [magn3x magn3y magn3z];
 magn4 = [magn4x magn4y magn4z];
 magn5 = [magn5x magn5y magn5z];
+%magn5 = [magn5x magn5z magn5y];
+
 
 %apply madgwick AHRS to the data from each IMU
 
 %%%%%%%IMU0%%%%%%%%%%%%%%%
 
-AHRS0 = MadgwickAHRS('SamplePeriod', time0(10) - time0(9), 'Beta', 0.1);
-quat0 = zeros(length(time0), 4);
+AHRS0 = MadgwickAHRS('SamplePeriod', time0(10) - time0(9), 'Beta', 1);
+%quat0 = [ones(length(time0),1) zeros(length(time0), 3)];
+quat0 =  zeros(length(time0), 4);
 for t = 1:length(time0)
     AHRS0.Update(gyro0(t,:) * (pi/180), accel0(t,:), magn0(t,:));	% gyroscope units must be radians
     quat0(t, :) = AHRS0.Quaternion;
@@ -118,7 +123,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%IMU1%%%%%%%%%%%%%%
-AHRS1 = MadgwickAHRS('SamplePeriod', time1(10) - time1(9), 'Beta', 0.1);
+AHRS1 = MadgwickAHRS('SamplePeriod', time1(10) - time1(9), 'Beta', 1);
 quat1 = zeros(length(time1), 4);
 for t = 1:length(time1)
     AHRS1.Update(gyro1(t,:) * (pi/180), accel1(t,:), magn1(t,:));	% gyroscope units must be radians
@@ -127,7 +132,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%IMU2%%%%%%%%%%%%%%
-AHRS2 = MadgwickAHRS('SamplePeriod', time2(10) - time2(9), 'Beta', 0.1);
+AHRS2 = MadgwickAHRS('SamplePeriod', time2(10) - time2(9), 'Beta', 1);
 quat2 = zeros(length(time2), 4);
 for t = 1:length(time2)
     AHRS2.Update(gyro2(t,:) * (pi/180), accel2(t,:), magn2(t,:));	% gyroscope units must be radians
@@ -136,16 +141,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%IMU3%%%%%%%%%%%%%%
-AHRS3 = MadgwickAHRS('SamplePeriod', time3(10) - time3(9), 'Beta', 0.1);
+AHRS3 = MadgwickAHRS('SamplePeriod', time3(10) - time3(9), 'Beta', 1);
 quat3 = zeros(length(time3), 4);
 for t = 1:length(time3)
-    AHRS0.Update(gyro3(t,:) * (pi/180), accel3(t,:), magn3(t,:));	% gyroscope units must be radians
+    AHRS3.Update(gyro3(t,:) * (pi/180), accel3(t,:), magn3(t,:));	% gyroscope units must be radians
     quat3(t, :) = AHRS3.Quaternion;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%IMU4%%%%%%%%%%%%%%
-AHRS4 = MadgwickAHRS('SamplePeriod', time4(10) - time4(9), 'Beta', 0.1);
+AHRS4 = MadgwickAHRS('SamplePeriod', time4(10) - time4(9), 'Beta', 1);
 quat4 = zeros(length(time4), 4);
 for t = 1:length(time4)
     AHRS4.Update(gyro4(t,:) * (pi/180), accel4(t,:), magn4(t,:));	% gyroscope units must be radians
@@ -154,7 +159,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%IMU5%%%%%%%%%%%%%%
-AHRS5 = MadgwickAHRS('SamplePeriod', time5(10) - time5(9), 'Beta', 0.1);
+AHRS5 = MadgwickAHRS('SamplePeriod', time5(10) - time5(9), 'Beta', 1);
 quat5 = zeros(length(time5), 4);
 for t = 1:length(time5)
     AHRS5.Update(gyro5(t,:) * (pi/180), accel5(t,:), magn5(t,:));	% gyroscope units must be radians
@@ -181,6 +186,14 @@ dyn_acc_2 = dyn_acc(quat2,accel2);
 dyn_acc_3 = dyn_acc(quat3,accel3);
 dyn_acc_4 = dyn_acc(quat4,accel4);
 dyn_acc_5 = dyn_acc(quat5,accel5);
+
+%use this to extract everything after the first 100
+% dyn_acc_0_f = dyn_acc_0(100:end,:);
+% dyn_acc_1_f = dyn_acc_0(100:end,:);
+% dyn_acc_2_f = dyn_acc_0(100:end,:);
+% dyn_acc_3_f = dyn_acc_0(100:end,:);
+% dyn_acc_4_f = dyn_acc_0(100:end,:);
+% dyn_acc_5_f = dyn_acc_0(150:end,:);
 %dyn_acc_6 = dyn_acc(quat6,accel6);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,30 +207,43 @@ acc_earth_q_2 = dyn_acc_earthFrame(dyn_acc_2,quat2);
 acc_earth_q_3 = dyn_acc_earthFrame(dyn_acc_3,quat3);
 acc_earth_q_4 = dyn_acc_earthFrame(dyn_acc_4,quat4);
 acc_earth_q_5 = dyn_acc_earthFrame(dyn_acc_5,quat5);
+%acc_earth_q_5 = dyn_acc_earthFrame(dyn_acc_5_f,quat5(150:end,:));
 %acc_earth_q_6 = dyn_acc_earthFrame(dyn_acc_6,quat6);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%get the acceleration vector components%%%%%%%%%%%%%%%%%%%%
 
-ax0 = acc_earth_q_0(:,2); ay0 = acc_earth_q_0(:,3); az0 = acc_earth_q_0(:,4);
-ax1 = acc_earth_q_1(:,2); ay1 = acc_earth_q_1(:,3); az1 = acc_earth_q_1(:,4);
-ax2 = acc_earth_q_2(:,2); ay2 = acc_earth_q_2(:,3); az2 = acc_earth_q_2(:,4);
-ax3 = acc_earth_q_3(:,2); ay3 = acc_earth_q_3(:,3); az3 = acc_earth_q_3(:,4);
-ax4 = acc_earth_q_4(:,2); ay4 = acc_earth_q_4(:,3); az4 = acc_earth_q_4(:,4);
-ax5 = acc_earth_q_5(:,2); ay5 = acc_earth_q_5(:,3); az5 = acc_earth_q_5(:,4);
+ax0 = acc_earth_q_0(150:end,2); ay0 = acc_earth_q_0(150:end,3); az0 = acc_earth_q_0(150:end,4);
+ax1 = acc_earth_q_1(150:end,2); ay1 = acc_earth_q_1(150:end,3); az1 = acc_earth_q_1(150:end,4);
+ax2 = acc_earth_q_2(150:end,2); ay2 = acc_earth_q_2(150:end,3); az2 = acc_earth_q_2(150:end,4);
+ax3 = acc_earth_q_3(150:end,2); ay3 = acc_earth_q_3(150:end,3); az3 = acc_earth_q_3(150:end,4);
+ax4 = acc_earth_q_4(150:end,2); ay4 = acc_earth_q_4(150:end,3); az4 = acc_earth_q_4(150:end,4);
+ax5 = acc_earth_q_5(150:end,2); ay5 = acc_earth_q_5(150:end,3); az5 = acc_earth_q_5(150:end,4);
 %ax6 = acc_earth_q_6(:,2); ay6 = acc_earth_q_6(:,3); az6 = acc_earth_q_6(:,4);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%numerically integrate to get velocity components %%%%%%
 
-vx0 = numInt(ax0,time0,ax0(1,:));vy0 = numInt(ay0,time0,ay0(1,:));vz0 = numInt(az0,time0,az0(1,:));
-vx1 = numInt(ax1,time1,ax1(1,:));vy1 = numInt(ay1,time1,ay1(1,:));vz1 = numInt(az1,time1,az1(1,:));
-vx2 = numInt(ax2,time2,ax2(1,:));vy2 = numInt(ay2,time2,ay2(1,:));vz2 = numInt(az2,time2,az2(1,:));
-vx3 = numInt(ax3,time3,ax3(1,:));vy3 = numInt(ay3,time3,ay3(1,:));vz3 = numInt(az3,time3,az3(1,:));
-vx4 = numInt(ax4,time4,ax4(1,:));vy4 = numInt(ay4,time4,ay4(1,:));vz4 = numInt(az4,time4,az4(1,:));
-vx5 = numInt(ax5,time5,ax5(1,:));vy5 = numInt(ay5,time5,ay5(1,:));vz5 = numInt(az5,time5,az5(1,:));
+% vx0 = numInt(ax0,time0,ax0(1,:));vy0 = numInt(ay0,time0,ay0(1,:));vz0 = numInt(az0,time0,az0(1,:));
+% vx1 = numInt(ax1,time1,ax1(1,:));vy1 = numInt(ay1,time1,ay1(1,:));vz1 = numInt(az1,time1,az1(1,:));
+% vx2 = numInt(ax2,time2,ax2(1,:));vy2 = numInt(ay2,time2,ay2(1,:));vz2 = numInt(az2,time2,az2(1,:));
+% vx3 = numInt(ax3,time3,ax3(1,:));vy3 = numInt(ay3,time3,ay3(1,:));vz3 = numInt(az3,time3,az3(1,:));
+% vx4 = numInt(ax4,time4,ax4(1,:));vy4 = numInt(ay4,time4,ay4(1,:));vz4 = numInt(az4,time4,az4(1,:));
+% vx5 = numInt(ax5,time5,ax5(1,:));vy5 = numInt(ay5,time5,ay5(1,:));vz5 = numInt(az5,time5,az5(1,:));
+time0 = time0(150:end,:);
+time1 = time1(150:end,:);
+time2 = time2(150:end,:);
+time3 = time3(150:end,:);
+time4 = time4(150:end,:);
+time5 = time5(150:end,:);
+vx0 = numInt(ax0,time0,0);vy0 = numInt(ay0,time0,0);vz0 = numInt(az0,time0,0);
+vx1 = numInt(ax1,time1,0);vy1 = numInt(ay1,time1,0);vz1 = numInt(az1,time1,0);
+vx2 = numInt(ax2,time2,0);vy2 = numInt(ay2,time2,0);vz2 = numInt(az2,time2,0);
+vx3 = numInt(ax3,time3,0);vy3 = numInt(ay3,time3,0);vz3 = numInt(az3,time3,0);
+vx4 = numInt(ax4,time4,0);vy4 = numInt(ay4,time4,0);vz4 = numInt(az4,time4,0);
+vx5 = numInt(ax5,time5,0);vy5 = numInt(ay5,time5,0);vz5 = numInt(az5,time5,0);
 %vx6 = numInt(ax6,time6,ax6(1,:));vy6 = numInt(ay6,time6,ay6(1,:));vz6 = numInt(az6,time6,az6(1,:));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -226,12 +252,12 @@ vx5 = numInt(ax5,time5,ax5(1,:));vy5 = numInt(ay5,time5,ay5(1,:));vz5 = numInt(a
 
 %format: [timestamp IMU# vx vy vz]
 
-vdat0 = [time0 0.*ones(length(time0),1) vx0 vy0 vz0];
-vdat1 = [time1 1.*ones(length(time1),1) vx1 vy1 vz1];
-vdat2 = [time2 2.*ones(length(time2),1) vx2 vy2 vz2];
-vdat3 = [time3 3.*ones(length(time3),1) vx3 vy3 vz3];
-vdat4 = [time4 4.*ones(length(time4),1) vx4 vy4 vz4];
-vdat5 = [time5 5.*ones(length(time5),1) vx5 vy5 vz5];
+vdat0 = [time0 1.*ones(length(time0),1) vx0 vy0 vz0];
+vdat1 = [time1 2.*ones(length(time1),1) vx1 vy1 vz1];
+vdat2 = [time2 3.*ones(length(time2),1) vx2 vy2 vz2];
+vdat3 = [time3 4.*ones(length(time3),1) vx3 vy3 vz3];
+vdat4 = [time4 5.*ones(length(time4),1) vx4 vy4 vz4];
+vdat5 = [time5 6.*ones(length(time5),1) vx5 vy5 vz5];
 %vdat6 = [time6 6.*ones(length(time6),1) vx6 vy6 vz6];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -277,7 +303,10 @@ for i = 1:6*length(vdat5)
 end
 
 
-dlmwrite('imudata2.txt',result,'\t');
+%dlmwrite('imudata4.txt',result,'\t');
+dlmwrite(outfile,result,'\t');
+
+end
 
 
 

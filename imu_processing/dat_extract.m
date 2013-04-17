@@ -38,7 +38,7 @@ zn = importdata(znfile,delimiterIn);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-[wx wy wz osx osy osz osgx osgy osgz] = cal_calc(xp, xn, yp, yn, zp, zn); %calculate all the offsets and scales for accelerometers
+[wx wy wz osx osy osz] = cal_calc(xp, xn, yp, yn, zp, zn); %calculate all the offsets and scales for accelerometers
 
 
 %%%%%%%%%%%%%%%import dataset%%%%%%%%%%%%%%%
@@ -50,7 +50,7 @@ zn = importdata(znfile,delimiterIn);
 
 ascale = 65535/8; %conversion factors
 gscale = 65535/2000;
-mscale = 400;
+
 
 time = data(:,1);
 time = time./1e6; %convert time to s from us
@@ -64,20 +64,22 @@ rgy = data(:,6)./gscale;
 rgz = data(:,7)./gscale;
 
 
-rmx = data(:,8)./mscale; %raw magnetometer
-rmy = data(:,9)./mscale;
-rmz = data(:,10)./mscale;
+rmx = data(:,8); %raw magnetometer - m2 takes care of this
+rmy = data(:,9);
+rmz = data(:,10);
 
 ax = wx .* (rax + osx.*ones(length(rax),1)); %correct accel data for offset and scale
-ay = wy .* (ray + osy.*ones(length(ray),1));
-az = wz .* (raz + osz.*ones(length(raz),1));
+ay = -1*wy .* (ray + osy.*ones(length(ray),1));
+az = -1*wz .* (raz + osz.*ones(length(raz),1));
 
-gx = rgx - (osgx/gscale).*ones(length(rgx),1);
-gy = rgy - (osgy/gscale).*ones(length(rgy),1);
-gz = rgz - (osgz/gscale).*ones(length(rgz),1);
+% gx = rgx - (osgx/gscale).*ones(length(rgx),1); %don't need this here, M2
+% taking care of it
+
+% gy = rgy - (osgy/gscale).*ones(length(rgy),1);
+% gz = rgz - (osgz/gscale).*ones(length(rgz),1);
 
 accel = [ax ay az];
-gyro = [gx gy gz];
+gyro = [rgx rgy rgz];
 magn = [rmx rmy rmz];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
