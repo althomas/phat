@@ -8,7 +8,7 @@ addpath('./madgwick_algorithm_matlab/quaternion_library'); %we are going to need
 addpath('./IMUcalibration/IMUcalibration/IMU7'); %contains the calibration files for each IMU
 addpath('./madgwick_algorithm_matlab');
 
-datafile = 'clench.txt'; %%change the input file name
+%datafile = 'clench.txt'; %%change the input file name
 %datafile = 'glove_test_041613-1.txt'; %%change the input file name
 delim = '\t'; %% we are working with tab-delimited files
 fullinput = importdata(datafile,delim);
