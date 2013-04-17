@@ -3,12 +3,13 @@
    Desc: Implementation file for CameraCap class
    Credits: Several functions below use code  derived from software developed
             by Point Grey Research, Inc., without whose cameras and 
-	    accompanying API this project would not have been possible.
+			accompanying API this project would not have been possible.
 */
 
 #include "CameraCap.h"
 
 #define PRINT_CAMERA_INFO 0
+#define SHUTTER_SPEED 5
 
 CameraCap::CameraCap(unsigned int nF)
 {
@@ -168,6 +169,13 @@ int CameraCap::CaptureFromCameras()
 
     PrintBuildInfo();
 
+	//Variables used in determing framerate of output AVI files
+	float avgFps = 0.0;
+	clock_t prevTime;
+	clock_t maxTime;
+	clock_t minTime;
+	clock_t *times = (clock_t *) malloc(nFrames * sizeof(clock_t));
+
     int k_numImages = nFrames;
     Error error;
 
@@ -232,7 +240,44 @@ int CameraCap::CaptureFromCameras()
 			PrintCameraInfo(&camInfo); 
 		}
 
-        // Set all cameras to a specific mode and frame rate so they
+		//Manually adjust the shutter speed of the cameras to the value of the
+		//macro above.
+		PropertyInfo camPropInfo;
+		camPropInfo.type = SHUTTER;
+		error = ppCameras[i]->GetPropertyInfo(&camPropInfo);
+		if(error != PGRERROR_OK)
+		{
+			PrintError(error);
+			return -1;
+		}
+		if(camPropInfo.present && camPropInfo.autoSupported)
+		{
+			Property camProp;
+			camProp.type = SHUTTER;
+			printf("Attempting to set camera shutter speed to manual mode at %d ms...\n",
+				SHUTTER_SPEED);
+			error = ppCameras[i]->GetProperty(&camProp);
+			if(error != PGRERROR_OK)
+			{
+				PrintError(error);
+				return -1;
+			}
+			camProp.autoManualMode = 0;
+			camProp.valueA = SHUTTER_SPEED;
+			camProp.absValue = SHUTTER_SPEED;
+			error = ppCameras[i]->SetProperty(&camProp);
+			if(error != PGRERROR_OK)
+			{
+				PrintError(error);
+				return -1;
+			}
+			printf("Shutter speed successfully set to %d ms in camera %d.\n\n",
+				SHUTTER_SPEED, i + 1);
+		} else {
+			printf("Shutter param not present in camera %d.\n\n",i + 1);
+		}
+
+		// Set all cameras to a specific mode and frame rate so they
         // can be synchronized
         error = ppCameras[i]->SetVideoModeAndFrameRate( 
             VIDEOMODE_640x480Y8, 
@@ -270,6 +315,10 @@ int CameraCap::CaptureFromCameras()
             }
 
 			vecImages[i + nCameras * j].DeepCopy( &image );
+			if(!i)
+			{
+				times[j] = clock();
+			}
         }
     }
 
@@ -282,7 +331,36 @@ int CameraCap::CaptureFromCameras()
 		return -1;
 	}
 
-	float frameRateToUse = 15.0f;
+	prevTime = times[0];
+
+	maxTime = 0;
+
+	minTime = 1000;
+
+	//Below we calculate the average fps. This value is derived by taking first
+	//the total time between frames and then dividing through by the number of
+	//time periods between frames, equal to nFrames - 1.
+	for(int i = 1; i < nFrames; i++)
+	{
+		avgFps += (float) (CLOCKS_PER_SEC / (times[i] - prevTime));
+		if((times[i] - prevTime) > maxTime){
+			maxTime = times[i] - prevTime;
+		}
+		if((times[i] - prevTime) < minTime){
+			minTime = times[i] - prevTime;
+		}
+		prevTime = times[i];
+	}
+
+	avgFps /= (nFrames - 1);
+
+	printf("Speed diagnostics:\n\n");
+
+	printf("Max clock_t between frames: %d\n",maxTime);
+	printf("Min clock_t between frames: %d\n",minTime);
+	printf("Experimental framerate: %f\n\n",avgFps);
+
+	float frameRateToUse = 30.0f;
 
 	if(propInfo.present == true)
 	{
@@ -296,7 +374,7 @@ int CameraCap::CaptureFromCameras()
 		frameRateToUse = prop.absValue;
 	}
 	
-	printf("Initializing write of .avi files with frame rate of %3.1f fps.\n\n",frameRateToUse);
+	printf("Initializing write of .avi files with frame rate of %3.1f fps.\n\n",avgFps);
 
 	SaveAviHelper(MJPG, vecImages, frameRateToUse);
 
@@ -306,6 +384,8 @@ int CameraCap::CaptureFromCameras()
         ppCameras[i]->Disconnect();
         delete ppCameras[i];
     }
+
+	free(times);
 
     delete [] ppCameras;
 
