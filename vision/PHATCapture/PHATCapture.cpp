@@ -19,6 +19,7 @@ int main(){
 	int strlength = 0;
 	int analysisFailure = -1;
 	int i = 0;
+	float fpsToUse = 0.0;
 	char videoFileName[BUFFER_SIZE];
 	char textFileName[BUFFER_SIZE];
 
@@ -77,6 +78,8 @@ int main(){
 
 	Tracker *phatTracker = new Tracker(userFileName);
 
+	fpsToUse = phatCap->getFps();
+
 	for(i = 0; i < phatCap->getNumCameras(); i++){
 		//Retry previous entry if there was a problem with directory location.
 		if(analysisFailure == DIRECTORY_NAME_FAILURE){
@@ -88,7 +91,7 @@ int main(){
 
 		printf("Analyzing video %d of %d...\n\n", i + 1, phatCap->getNumCameras());
 
-		analysisFailure = phatTracker->AnalyzeVideo(videoFileName,textFileName);
+		analysisFailure = phatTracker->AnalyzeVideo(videoFileName,textFileName,fpsToUse);
 
 		if(analysisFailure == DIRECTORY_NAME_FAILURE){
 			printf("A problem occurred while analyzing the video file: \n%s\n\n",videoFileName);

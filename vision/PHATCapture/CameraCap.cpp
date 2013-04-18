@@ -15,6 +15,7 @@ CameraCap::CameraCap(unsigned int nF)
 {
 	nFrames = nF;
 	nCameras = 0;
+	expFPS = 0.0;
 }
 
 void CameraCap::PrintBuildInfo()
@@ -389,15 +390,22 @@ int CameraCap::CaptureFromCameras()
 
     delete [] ppCameras;
 
+	this->expFPS = avgFps;
+
 	return 0;
 }
 
 int CameraCap::getNumCameras()
 {
-	return nCameras;
+	return this->nCameras;
 }
 
 void CameraCap::setNumFrames(unsigned int n)
 {
 	this->nFrames = n;
+}
+
+float CameraCap::getFps()
+{
+	return this->expFPS;
 }

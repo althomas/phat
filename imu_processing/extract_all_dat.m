@@ -5,10 +5,10 @@
 
 function []  = extract_all_dat(datafile,outfile)
 addpath('./madgwick_algorithm_matlab/quaternion_library'); %we are going to need the quaternion stuff
-addpath('IMUcalibration/IMUcalibration/IMU7'); %contains the calibration files for each IMU
+addpath('./IMUcalibration/IMUcalibration/IMU7'); %contains the calibration files for each IMU
 addpath('./madgwick_algorithm_matlab');
 
-%datafile = 'glove_test041613-2.txt'; %%change the input file name
+%datafile = 'clench.txt'; %%change the input file name
 %datafile = 'glove_test_041613-1.txt'; %%change the input file name
 delim = '\t'; %% we are working with tab-delimited files
 fullinput = importdata(datafile,delim);
@@ -180,12 +180,12 @@ end
 
 %dyn_acc is dynamic acceleration in the frame of the sensor%
 
-dyn_acc_0 = dyn_acc(quat0,accel0);
-dyn_acc_1 = dyn_acc(quat1,accel1);
-dyn_acc_2 = dyn_acc(quat2,accel2);
-dyn_acc_3 = dyn_acc(quat3,accel3);
-dyn_acc_4 = dyn_acc(quat4,accel4);
-dyn_acc_5 = dyn_acc(quat5,accel5);
+dyn_acc_0 = dyn_acc(quat0(150:end,:),accel0(150:end,:));
+dyn_acc_1 = dyn_acc(quat1(150:end,:),accel1(150:end,:));
+dyn_acc_2 = dyn_acc(quat2(150:end,:),accel2(150:end,:));
+dyn_acc_3 = dyn_acc(quat3(150:end,:),accel3(150:end,:));
+dyn_acc_4 = dyn_acc(quat4(150:end,:),accel4(150:end,:));
+dyn_acc_5 = dyn_acc(quat5(150:end,:),accel5(150:end,:));
 
 %use this to extract everything after the first 100
 % dyn_acc_0_f = dyn_acc_0(100:end,:);
@@ -201,12 +201,12 @@ dyn_acc_5 = dyn_acc(quat5,accel5);
 %%%%%%%%%rotate dynamic acceleration into the frame of the earth%%%%%
 
 %%these results are all quaternions
-acc_earth_q_0 = dyn_acc_earthFrame(dyn_acc_0,quat0);
-acc_earth_q_1 = dyn_acc_earthFrame(dyn_acc_1,quat1);
-acc_earth_q_2 = dyn_acc_earthFrame(dyn_acc_2,quat2);
-acc_earth_q_3 = dyn_acc_earthFrame(dyn_acc_3,quat3);
-acc_earth_q_4 = dyn_acc_earthFrame(dyn_acc_4,quat4);
-acc_earth_q_5 = dyn_acc_earthFrame(dyn_acc_5,quat5);
+acc_earth_q_0 = dyn_acc_earthFrame(dyn_acc_0,quat0(150:end,:));
+acc_earth_q_1 = dyn_acc_earthFrame(dyn_acc_1,quat1(150:end,:));
+acc_earth_q_2 = dyn_acc_earthFrame(dyn_acc_2,quat2(150:end,:));
+acc_earth_q_3 = dyn_acc_earthFrame(dyn_acc_3,quat3(150:end,:));
+acc_earth_q_4 = dyn_acc_earthFrame(dyn_acc_4,quat4(100:end,:));
+acc_earth_q_5 = dyn_acc_earthFrame(dyn_acc_5,quat5(150:end,:));
 %acc_earth_q_5 = dyn_acc_earthFrame(dyn_acc_5_f,quat5(150:end,:));
 %acc_earth_q_6 = dyn_acc_earthFrame(dyn_acc_6,quat6);
 
@@ -214,14 +214,20 @@ acc_earth_q_5 = dyn_acc_earthFrame(dyn_acc_5,quat5);
 
 %%%%%%%%%%%get the acceleration vector components%%%%%%%%%%%%%%%%%%%%
 
-ax0 = acc_earth_q_0(150:end,2); ay0 = acc_earth_q_0(150:end,3); az0 = acc_earth_q_0(150:end,4);
-ax1 = acc_earth_q_1(150:end,2); ay1 = acc_earth_q_1(150:end,3); az1 = acc_earth_q_1(150:end,4);
-ax2 = acc_earth_q_2(150:end,2); ay2 = acc_earth_q_2(150:end,3); az2 = acc_earth_q_2(150:end,4);
-ax3 = acc_earth_q_3(150:end,2); ay3 = acc_earth_q_3(150:end,3); az3 = acc_earth_q_3(150:end,4);
-ax4 = acc_earth_q_4(150:end,2); ay4 = acc_earth_q_4(150:end,3); az4 = acc_earth_q_4(150:end,4);
-ax5 = acc_earth_q_5(150:end,2); ay5 = acc_earth_q_5(150:end,3); az5 = acc_earth_q_5(150:end,4);
+%ax0 = acc_earth_q_0(200:end,2); ay0 = acc_earth_q_0(200:end,3); az0 = acc_earth_q_0(200:end,4);
+%ax1 = acc_earth_q_1(200:end,2); ay1 = acc_earth_q_1(200:end,3); az1 = acc_earth_q_1(200:end,4);
+%ax2 = acc_earth_q_2(200:end,2); ay2 = acc_earth_q_2(200:end,3); az2 = acc_earth_q_2(200:end,4);
+%ax3 = acc_earth_q_3(200:end,2); ay3 = acc_earth_q_3(200:end,3); az3 = acc_earth_q_3(200:end,4);
+%ax4 = acc_earth_q_4(200:end,2); ay4 = acc_earth_q_4(200:end,3); az4 = acc_earth_q_4(200:end,4);
+%ax5 = acc_earth_q_5(200:end,2); ay5 = acc_earth_q_5(200:end,3); az5 = acc_earth_q_5(200:end,4);
 %ax6 = acc_earth_q_6(:,2); ay6 = acc_earth_q_6(:,3); az6 = acc_earth_q_6(:,4);
 
+ax0 = acc_earth_q_0(:,2); ay0 = acc_earth_q_0(:,3); az0 = acc_earth_q_0(:,4);
+ax1 = acc_earth_q_1(:,2); ay1 = acc_earth_q_1(:,3); az1 = acc_earth_q_1(:,4);
+ax2 = acc_earth_q_2(:,2); ay2 = acc_earth_q_2(:,3); az2 = acc_earth_q_2(:,4);
+ax3 = acc_earth_q_3(:,2); ay3 = acc_earth_q_3(:,3); az3 = acc_earth_q_3(:,4);
+ax4 = acc_earth_q_4(:,2); ay4 = acc_earth_q_4(:,3); az4 = acc_earth_q_4(:,4);
+ax5 = acc_earth_q_5(:,2); ay5 = acc_earth_q_5(:,3); az5 = acc_earth_q_5(:,4);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%numerically integrate to get velocity components %%%%%%
