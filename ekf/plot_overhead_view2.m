@@ -26,22 +26,24 @@ aviobj = avifile('~/Desktop/testvideo1.avi');
 hh = figure;
 
 
-for i = 1:length(time)
-    figure(hh)
+for i = start:length(x(:,1))
+    %figure(hh)
 
 
 
-    plot3(x(start:end,2), x(start:end,3), x(start:end,4), 'c.'); % hand
-    plot3(x(start:end,5), x(start:end,6), x(start:end,7), 'k.'); %thumb
-    plot3(x(start:end,8), x(start:end,9), x(start:end,10),'r.'); % index
-    plot3(x(start:end,11), x(start:end,12), x(start:end,13),'c.'); % middle
-    plot3(x(start:end,14), x(start:end,15), x(start:end,16),'k.'); % ring
-    plot3(x(start:end,17), x(start:end,18), x(start:end,19),'r.'); %pinky
+    plot3(x(start:i,2), x(start:i,3), x(start:i,4), 'c.'); % hand
+    plot3(x(start:i,5), x(start:i,6), x(start:i,7), 'k.'); %thumb
+    plot3(x(start:i,8), x(start:i,9),  x(start:i,10),'r.'); % index
+    plot3(x(start:i,11), x(start:i,12), x(start:i,13),'c.'); % middle
+    plot3(x(start:i,14), x(start:i,15), x(start:i,16),'k.'); % ring
+    plot3(x(start:i,17), x(start:i,18), x(start:i,19),'r.'); %pinky
 
 %plot(x(1,2:end), x(2,2:end), 'ro-');
 
     
     aviobj = addframe(aviobj, getframe(hh));
+
+    pause(.0005);
 end
 
 xlabel('x');
