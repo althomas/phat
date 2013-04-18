@@ -57,7 +57,7 @@ for k=1:N
   truth_in(:,k)= s_in;
 
   % only one IMU at a time
-  imu = k mod 7;                            
+  imu = mod(k,7);
   est_in(:,k) = cat(1,imu,truth_in(imu,k) + r_in*randn(1,1));             
 
 end

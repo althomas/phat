@@ -6,8 +6,10 @@
 function c = config_test
   % input log files from inertial and visual sensors.
   % for fabricated data, include "truth" files with no noise for comparison
-  c.testlog_in = './logs/full_in.txt'; % (intertial data)
-  c.testlog_vis = './logs/full_vis.txt'; % (visions data)
+  %c.testlog_in = './logs/full_in.txt'; % (intertial data)
+  %c.testlog_vis = './logs/full_vis.txt'; % (visions data)
+  c.testlog_in = '~/Desktop/SD Sample Data/IMUs Clench/imudata2.txt'
+  c.testlog_vis = '~/Desktop/finalOutput.txt'
   c.truthfiles = false; % if true, then we have created (instead of measuring) data
                         % and there are files (below) that have the "true" data,
                         % ie data without any added noise.
@@ -17,8 +19,8 @@ function c = config_test
 
   c.pairs = 6;           % number of IMU/LED pairs
   c.n = 3*c.pairs;      %number of states (make sure to change f and s accordingly)
-  c.q = 0.06;           %std of process 
-  c.r = 0.02;           %std of measurement 
+  c.q = 0.06;           %std of process -imus
+  c.r = 0.02;           %std of measurement -vision
   % Notes for q and r: if q >> r, then we essentially take the vision measurements
 
 
@@ -29,7 +31,7 @@ function c = config_test
   c.h = @(x,u,t)[x];                               % measurement equation
 
   % initial states
-  c.x_0 = zeros(1,c.n);                              % initial state 
+  c.x_0 = 24*ones(1,c.n);                             % initial state 
   c.P = eye(c.n);                               % initial state covraiance
   c.N = 50;                                     % total dynamic steps
 

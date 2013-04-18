@@ -7,6 +7,8 @@ clear all;
 
 c = config();
 
+remove_imu = 0;
+
 n=c.n;  
 q=c.q;   
 r=c.r;   
@@ -27,6 +29,10 @@ truthfiles=c.truthfiles;
 if truthfiles
   [true_in, true_vis] = read_logs(c.truthlog_in,c.truthlog_vis);
   true_pos = dlmread(c.truthlog, '\t'); 
+end
+
+if (remove_imu == 1)
+    in(:,3:end) = in(:,3:end)*0;
 end
 
 moreData = true; % this becomes false when there is no more data to read
