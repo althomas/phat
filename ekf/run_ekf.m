@@ -4,6 +4,7 @@
 
 clear all;
 
+
 c = config();
 
 n=c.n;  
@@ -99,7 +100,7 @@ while (moreData)
 end
 
 plot_overhead_view(x);
-
+finger(x);
 
 
 
